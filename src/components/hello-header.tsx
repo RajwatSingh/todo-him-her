@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 
+import { DailyQuote } from "@/components/daily-quote"
 import { LoveEffect, MayaEffect } from "@/components/handwriting"
 
 /**
@@ -12,7 +13,9 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
   const [step, setStep] = useState<0 | 1>(0)
 
   return (
-    <header className="relative z-10 flex flex-col items-center gap-3 pt-10 pb-2 text-center sm:pt-14">
+    <header className="relative z-10 flex flex-col items-center gap-3 pt-8 pb-2 text-center sm:pt-10">
+      <DailyQuote />
+
       <div className="flex h-16 items-center justify-center sm:h-20">
         <AnimatePresence mode="wait">
           {step === 0 ? (
