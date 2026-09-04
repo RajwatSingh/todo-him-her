@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>our days</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f0eb;
+            --bg-warm: #ede7df;
+            --card-bg: rgba(255, 255, 255, 0.65);
+            --card-border: rgba(0, 0, 0, 0.06);
+            --card-hover: rgba(255, 255, 255, 0.85);
+            --text-primary: #2c2c2c;
+            --text-secondary: #8a8580;
+            --text-tertiary: #b5afa8;
+            --accent: #c9a87c;
+            --accent-soft: #e8d5bc;
+            --accent-hover: #b8956a;
+            --check-done: #a3b899;
+            --danger: #c97c7c;
+            --sleep-bg: rgba(18, 18, 24, 0.92);
+            --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+            --shadow-hover: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --font-sans: 'DM Sans', -apple-system, sans-serif;
+            --font-serif: 'DM Serif Display', Georgia, serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 2rem;
+        }
+
+        /* Subtle grain texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 2.4rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+        }
+
+        .date-display {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 960px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .column {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.8rem;
+            min-height: 480px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .column:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.4rem;
+            padding-bottom: 0;
+        }
+
+        .person-name {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 400;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            width: 180px;
+            padding: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .person-name:focus {
+            outline: none;
+            border-bottom: 1px solid var(--accent-soft);
+        }
+
+        .time-display {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .column-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .location {
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .stats {
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Sleep Overlay */
+        .sleep-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--sleep-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            border-radius: var(--radius);
+        }
+
+        .sleep-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .sleep-moon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, transparent 40%, rgba(255,255,255,0.08) 40%);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            margin-bottom: 1.2rem;
+            animation: gentleFloat 6s infinite ease-in-out;
+            position: relative;
+        }
+
+        .sleep-moon::after {
+            content: '';
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--sleep-bg);
+            top: -4px;
+            left: 10px;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .sleep-label {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.15em;
+            text-transform: lowercase;
+        }
+
+        .sleep-time {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.25);
+            margin-top: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .sleep-dots {
+            display: flex;
+            gap: 6px;
+            margin-top: 1rem;
+        }
+
+        .sleep-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            animation: pulse 2.5s infinite ease-in-out;
+        }
+
+        .sleep-dot:nth-child(2) { animation-delay: 0.5s; }
+        .sleep-dot:nth-child(3) { animation-delay: 1s; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Add Todo */
+        .add-todo-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .add-input {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.5);
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .add-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .add-input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.9);
+            border-color: var(--accent-soft);
+        }
+
+        .add-btn {
+            background: var(--text-primary);
+            color: var(--bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0 1rem;
+            font-family: var(--font-sans);
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.02em;
+        }
+
+        .add-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Todo List */
+        .todo-list {
+            list-style: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .todo-list::-webkit-scrollbar { width: 4px; }
+        .todo-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 10px; }
+
+        .todo-item {
+            background: rgba(255,255,255,0.5);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 0.9rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .todo-item:hover {
+            background: var(--card-hover);
+            border-color: var(--card-border);
+        }
+
+        .todo-item.completed {
+            opacity: 0.45;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .todo-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 2px;
+            transition: transform 0.15s;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        .icon-btn:hover { transform: scale(1.15); }
+
+        .checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 1.5px solid var(--text-tertiary);
+            border-radius: 5px;
+            margin-top: 2px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .checkbox:hover { border-color: var(--accent); }
+
+        .checkbox:checked {
+            background-color: var(--check-done);
+            border-color: var(--check-done);
+        }
+
+        .checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 5px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 1.5px 1.5px 0;
+            transform: rotate(45deg);
+        }
+
+        .text-container {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .todo-text {
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .completed .todo-text {
+            text-decoration: line-through;
+            color: var(--text-tertiary);
+        }
+
+        .has-desc-indicator {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .todo-desc {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            background: rgba(255,255,255,0.4);
+            font-family: var(--font-sans);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            resize: vertical;
+            min-height: 50px;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .todo-desc::placeholder { color: var(--text-tertiary); }
+        .todo-desc:focus { outline: none; border-color: var(--accent-soft); }
+
+        .todo-desc.open {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        /* Actions */
+        .todo-actions {
+            display: flex;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.15s;
+            position: absolute;
+            right: 8px;
+            top: 8px;
+        }
+
+        .todo-item:hover .todo-actions { opacity: 1; }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            transition: all 0.15s;
+        }
+
+        .action-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-primary); }
+        .delete-btn:hover { color: var(--danger); }
+
+        /* Sub-todos */
+        .sub-todos {
+            margin-top: 0.5rem;
+            margin-left: 1.6rem;
+            padding-left: 0.7rem;
+            border-left: 1.5px solid rgba(0,0,0,0.06);
+            list-style: none;
+        }
+
+        .sub-todo-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0;
+            font-size: 0.88rem;
+            position: relative;
+        }
+
+        .sub-todo-item .checkbox {
+            width: 15px;
+            height: 15px;
+        }
+
+        .sub-todo-item .checkbox:checked::after {
+            left: 4px;
+            top: 1px;
+            width: 4px;
+            height: 7px;
+        }
+
+        .sub-todo-item .todo-text {
+            font-size: 0.86rem;
+        }
+
+        .sub-actions {
+            opacity: 0;
+            transition: opacity 0.15s;
+            margin-left: auto;
+        }
+
+        .sub-todo-item:hover .sub-actions { opacity: 1; }
+
+        /* Icon Picker */
+        .icon-picker {
+            position: absolute;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            box-shadow: var(--shadow-hover);
+            display: none;
+            z-index: 100;
+            width: 240px;
+        }
+
+        .icon-picker.active { display: block; }
+
+        .icon-picker-label {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+            padding-left: 2px;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+        }
+
+        .icon-grid-item {
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-align: center;
+            padding: 6px 4px;
+            border-radius: 6px;
+            transition: background 0.12s;
+        }
+
+        .icon-grid-item:hover { background: var(--bg-warm); }
+
+        /* Footer */
+        footer {
+            margin-top: 2.5rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-tertiary);
+            padding: 0.45rem 1rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            border-color: var(--text-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .footer-note {
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        /* Confirmation Dialog */
+        .confirm-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .confirm-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .confirm-dialog {
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            max-width: 340px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .confirm-dialog h3 {
+            font-family: var(--font-serif);
+            font-weight: 400;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .confirm-dialog p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .confirm-actions button {
+            padding: 0.5rem 1.2rem;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-cancel:hover { background: var(--bg-warm); }
+
+        .btn-confirm {
+            background: var(--text-primary);
+            color: white;
+            border-color: var(--text-primary) !important;
+        }
+
+        .btn-confirm:hover { opacity: 0.85; }
+
+        @media (max-width: 700px) {
+            body { padding: 1.5rem 1rem; }
+            .container { grid-template-columns: 1fr; }
+            h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>our days</h1>
+        <div class="date-display" id="current-date"></div>
+    </header>
+
+    <div class="container">
+        <!-- Column 1 -->
+        <div class="column" id="col-me" data-id="me">
+            <div class="sleep-overlay" id="sleep-me">
+                <div class="sleep-moon"></div>
+                <div class="sleep-label">sleeping</div>
+                <div class="sleep-time" id="sleep-time-me"></div>
+                <div class="sleep-dots">
+                    <div class="sleep-dot"></div>
+                    <div class="sleep-dot"></div>
+                    <div class="sleep-dot"></div>
+                </div>
+            </div>
+
+            <div class="column-header">
+                <input type="text" class="person-name" id="name-me" value="me">
+                <div class="time-display" id="time-me">--:--</div>
+            </div>
+            <div class="column-meta">
+                <span class="location">Gettysburg, PA</span>
+                <span class="stats" id="stats-me">0 done</span>
+            </div>
+
+            <div class="add-todo-container">
+                <input type="text" class="add-input" id="add-input-me" placeholder="add a task...">
+                <button class="add-btn" onclick="addTodo('me')">add</button>
+            </div>
+
+            <ul class="todo-list" id="list-me"></ul>
+        </div>
+
+        <!-- Column 2 -->
+        <div class="column" id="col-partner" data-id="partner">
+            <div class="sleep-overlay" id="sleep-partner">
+                <div class="sleep-moon"></div>
+                <div class="sleep-label">sleeping</div>
+                <div class="sleep-time" id="sleep-time-partner"></div>
+                <div class="sleep-dots">
+                    <div class="sleep-dot"></div>
+                    <div class="sleep-dot"></div>
+                    <div class="sleep-dot"></div>
+                </div>
+            </div>
+
+            <div class="column-header">
+                <input type="text" class="person-name" id="name-partner" value="her">
+                <div class="time-display" id="time-partner">--:--</div>
+            </div>
+            <div class="column-meta">
+                <span class="location">Pune, India</span>
+                <span class="stats" id="stats-partner">0 done</span>
+            </div>
+
+            <div class="add-todo-container">
+                <input type="text" class="add-input" id="add-input-partner" placeholder="add a task...">
+                <button class="add-btn" onclick="addTodo('partner')">add</button>
+            </div>
+
+            <ul class="todo-list" id="list-partner"></ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-actions">
+            <button class="clear-btn" onclick="showConfirm()">clear all</button>
+        </div>
+        <div class="footer-note" id="footer-note"></div>
+    </footer>
+
+    <!-- Icon Picker -->
+    <div class="icon-picker" id="icon-picker">
+        <div class="icon-picker-label">pick an icon</div>
+        <div class="icon-grid" id="icon-grid"></div>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div class="confirm-overlay" id="confirm-overlay">
+        <div class="confirm-dialog">
+            <h3>clear everything?</h3>
+            <p>This will remove all tasks from both columns.</p>
+            <div class="confirm-actions">
+                <button class="btn-cancel" onclick="hideConfirm()">cancel</button>
+                <button class="btn-confirm" onclick="clearAll()">clear all</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TZ = {
+            me: 'America/New_York',
+            partner: 'Asia/Kolkata'
+        };
+
+        const ICONS = [
+            '📝', '📖', '📚', '💻', '📧',
+            '📞', '📅', '💼', '📦', '🛒',
+            '🍳', '☕', '🥗', '🍕', '🧘',
+            '🏃', '🏋️', '🧹', '🧺', '🪴',
+            '💊', '🛁', '✂️', '🎯', '📌',
+            '🎵', '🎨', '✈️', '🚗', '⭐'
+        ];
+
+        const NOTES = [
+            "one day at a time",
+            "small steps count",
+            "today matters",
+            "keep going",
+            "be kind to yourself",
+            "good things take time",
+            "do your best"
+        ];
+
+        // State
+        let todos = { me: [], partner: [] };
+        let names = { me: 'me', partner: 'her' };
+        let openDescriptions = new Set();
+        let currentIconTarget = null;
+
+        // Init
+        function init() {
+            load();
+            updateDate();
+            updateTimes();
+            setInterval(updateTimes, 30000);
+
+            document.getElementById('name-me').addEventListener('input', e => saveName('me', e.target.value));
+            document.getElementById('name-partner').addEventListener('input', e => saveName('partner', e.target.value));
+
+            buildIconGrid();
+            render('me');
+            render('partner');
+
+            document.getElementById('add-input-me').addEventListener('keydown', e => {
+                if (e.key === 'Enter') addTodo('me');
+            });
+            document.getElementById('add-input-partner').addEventListener('keydown', e => {
+                if (e.key === 'Enter') addTodo('partner');
+            });
+
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.icon-picker') && !e.target.closest('.icon-btn')) {
+                    document.getElementById('icon-picker').classList.remove('active');
+                }
+            });
+        }
+
+        // Data
+        function load() {
+            try {
+                const saved = localStorage.getItem('ourdays_todos');
+                if (saved) todos = JSON.parse(saved);
+                const savedNames = localStorage.getItem('ourdays_names');
+                if (savedNames) {
+                    names = JSON.parse(savedNames);
+                    document.getElementById('name-me').value = names.me;
+                    document.getElementById('name-partner').value = names.partner;
+                }
+            } catch(e) {}
+        }
+
+        function save() {
+            localStorage.setItem('ourdays_todos', JSON.stringify(todos));
+            updateStats('me');
+            updateStats('partner');
+        }
+
+        function saveName(who, val) {
+            names[who] = val;
+            localStorage.setItem('ourdays_names', JSON.stringify(names));
+        }
+
+        // Time
+        function updateTimes() {
+            const now = new Date();
+            ['me', 'partner'].forEach(who => {
+                const tz = TZ[who];
+                const timeStr = now.toLocaleTimeString('en-US', {
+                    timeZone: tz,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                }).toLowerCase();
+                document.getElementById(`time-${who}`).textContent = timeStr;
+
+                // Sleep check: 12am - 8am
+                const h = parseInt(now.toLocaleString('en-US', { timeZone: tz, hour: 'numeric', hour12: false }));
+                const sleeping = h >= 0 && h < 8;
+                const overlay = document.getElementById(`sleep-${who}`);
+                overlay.classList.toggle('active', sleeping);
+
+                // Show what time it is for them in the sleep overlay
+                const sleepTimeEl = document.getElementById(`sleep-time-${who}`);
+                if (sleeping) {
+                    sleepTimeEl.textContent = timeStr;
+                }
+            });
+        }
+
+        function updateDate() {
+            const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', opts).toLowerCase();
+
+            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+            document.getElementById('footer-note').textContent = NOTES[dayOfYear % NOTES.length];
+        }
+
+        // Todo ops
+        function uid() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        function addTodo(who, parentId = null) {
+            let text;
+            if (!parentId) {
+                const input = document.getElementById(`add-input-${who}`);
+                text = input.value.trim();
+                input.value = '';
+            } else {
+                text = prompt('subtask:');
+            }
+            if (!text) return;
+
+            const item = {
+                id: uid(),
+                text,
+                icon: '📌',
+                completed: false,
+                description: '',
+                subTodos: []
+            };
+
+            if (!parentId) {
+                todos[who].unshift(item);
+            } else {
+                const parent = find(todos[who], parentId);
+                if (parent) parent.subTodos.push(item);
+            }
+
+            save();
+            render(who);
+        }
+
+        function find(list, id) {
+            for (const item of list) {
+                if (item.id === id) return item;
+                if (item.subTodos) {
+                    const found = find(item.subTodos, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function toggle(who, id) {
+            const item = find(todos[who], id);
+            if (item) {
+                item.completed = !item.completed;
+                save();
+                render(who);
+            }
+        }
+
+        function remove(who, id) {
+            const filterDeep = list => list.filter(item => {
+                if (item.id === id) return false;
+                if (item.subTodos) item.subTodos = filterDeep(item.subTodos);
+                return true;
+            });
+            todos[who] = filterDeep(todos[who]);
+            save();
+            render(who);
+        }
+
+        function updateDesc(who, id, desc) {
+            const item = find(todos[who], id);
+            if (item) {
+                item.description = desc;
+                save();
+                // Update indicator without full re-render
+                const container = document.querySelector(`#desc-${id}`)?.closest('.text-container');
+                if (container) {
+                    const indicator = container.querySelector('.has-desc-indicator');
+                    const todoText = container.querySelector('.todo-text');
+                    if (desc.trim() && !indicator) {
+                        const dot = document.createElement('span');
+                        dot.className = 'has-desc-indicator';
+                        todoText.appendChild(dot);
+                    } else if (!desc.trim() && indicator) {
+                        indicator.remove();
+                    }
+                }
+            }
+        }
+
+        function toggleDesc(id) {
+            const el = document.getElementById(`desc-${id}`);
+            if (el) {
+                const open = el.classList.toggle('open');
+                open ? openDescriptions.add(id) : openDescriptions.delete(id);
+                if (open) el.focus();
+            }
+        }
+
+        function updateStats(who) {
+            let done = 0;
+            const count = list => list.forEach(item => {
+                if (item.completed) done++;
+                if (item.subTodos) count(item.subTodos);
+            });
+            count(todos[who]);
+            const total = todos[who].reduce((acc, item) => acc + 1 + (item.subTodos?.length || 0), 0);
+            document.getElementById(`stats-${who}`).textContent = total ? `${done}/${total} done` : '';
+        }
+
+        // Confirm dialog
+        function showConfirm() {
+            document.getElementById('confirm-overlay').classList.add('active');
+        }
+
+        function hideConfirm() {
+            document.getElementById('confirm-overlay').classList.remove('active');
+        }
+
+        function clearAll() {
+            todos = { me: [], partner: [] };
+            save();
+            render('me');
+            render('partner');
+            hideConfirm();
+        }
+
+        // Icon picker
+        function buildIconGrid() {
+            const grid = document.getElementById('icon-grid');
+            ICONS.forEach(icon => {
+                const el = document.createElement('div');
+                el.className = 'icon-grid-item';
+                el.textContent = icon;
+                el.onclick = () => pickIcon(icon);
+                grid.appendChild(el);
+            });
+        }
+
+        function openPicker(e, who, id) {
+            e.stopPropagation();
+            const picker = document.getElementById('icon-picker');
+            currentIconTarget = { who, id };
+            const rect = e.target.getBoundingClientRect();
+            picker.style.top = `${rect.bottom + window.scrollY + 4}px`;
+            picker.style.left = `${Math.min(rect.left + window.scrollX, window.innerWidth - 260)}px`;
+            picker.classList.add('active');
+        }
+
+        function pickIcon(icon) {
+            if (currentIconTarget) {
+                const { who, id } = currentIconTarget;
+                const item = find(todos[who], id);
+                if (item) {
+                    item.icon = icon;
+                    save();
+                    render(who);
+                }
+            }
+            document.getElementById('icon-picker').classList.remove('active');
+        }
+
+        // Render
+        function render(who) {
+            const list = document.getElementById(`list-${who}`);
+            list.innerHTML = '';
+            todos[who].forEach((item, i) => {
+                list.appendChild(buildItem(who, item, i));
+            });
+            updateStats(who);
+        }
+
+        function buildItem(who, item, idx) {
+            const li = document.createElement('li');
+            li.className = `todo-item${item.completed ? ' completed' : ''}`;
+            li.style.animation = `fadeIn 0.25s ease ${idx * 0.03}s both`;
+
+            const hasDesc = item.description?.trim();
+            const descOpen = openDescriptions.has(item.id);
+
+            const content = document.createElement('div');
+            content.className = 'todo-content';
+            content.innerHTML = `
+                <button class="icon-btn" onclick="openPicker(event, '${who}', '${item.id}')">${item.icon}</button>
+                <input type="checkbox" class="checkbox" ${item.completed ? 'checked' : ''} onchange="toggle('${who}', '${item.id}')">
+                <div class="text-container">
+                    <div class="todo-text" onclick="toggleDesc('${item.id}')">
+                        ${item.text}
+                        ${hasDesc ? '<span class="has-desc-indicator"></span>' : ''}
+                    </div>
+                    <textarea class="todo-desc${descOpen ? ' open' : ''}" id="desc-${item.id}" placeholder="add notes..." onblur="updateDesc('${who}', '${item.id}', this.value)">${item.description || ''}</textarea>
+                </div>
+                <div class="todo-actions">
+                    <button class="action-btn" onclick="addTodo('${who}', '${item.id}')" title="add subtask">+</button>
+                    <button class="action-btn delete-btn" onclick="remove('${who}', '${item.id}')" title="delete">&times;</button>
+                </div>
+            `;
+            li.appendChild(content);
+
+            if (item.subTodos?.length) {
+                const sub = document.createElement('ul');
+                sub.className = 'sub-todos';
+                item.subTodos.forEach(s => {
+                    const sli = document.createElement('li');
+                    sli.className = `sub-todo-item${s.completed ? ' completed' : ''}`;
+                    sli.innerHTML = `
+                        <button class="icon-btn" style="font-size:0.85rem" onclick="openPicker(event, '${who}', '${s.id}')">${s.icon || '·'}</button>
+                        <input type="checkbox" class="checkbox" ${s.completed ? 'checked' : ''} onchange="toggle('${who}', '${s.id}')">
+                        <span class="todo-text" style="flex:1">${s.text}</span>
+                        <div class="sub-actions">
+                            <button class="action-btn delete-btn" style="width:18px;height:18px;font-size:11px" onclick="remove('${who}', '${s.id}')">&times;</button>
+                        </div>
+                    `;
+                    sub.appendChild(sli);
+                });
+                li.appendChild(sub);
+            }
+
+            return li;
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

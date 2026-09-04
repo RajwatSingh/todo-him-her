@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-ssr
+.env
+.env.local
+.env.*.local
+*.local
+.vercel
+.DS_Store
+dev.log
+*.tsbuildinfo
+
+# handwriting source fonts, re-downloaded on demand by tools/generate-handwriting.mjs
+tools/fonts/

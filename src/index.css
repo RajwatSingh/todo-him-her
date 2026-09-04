@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   our days — soft pastel theme
+   blush · lavender · cream. everything rounded, nothing shouts.
+--------------------------------------------------------------------------- */
+
+:root {
+  --radius: 1.25rem;
+
+  /* page */
+  --background: oklch(0.982 0.009 40);
+  --foreground: oklch(0.36 0.035 15);
+
+  /* surfaces */
+  --card: oklch(1 0 0 / 72%);
+  --card-foreground: oklch(0.36 0.035 15);
+  --popover: oklch(0.995 0.005 40);
+  --popover-foreground: oklch(0.36 0.035 15);
+
+  /* blush primary */
+  --primary: oklch(0.72 0.115 15);
+  --primary-foreground: oklch(0.99 0.004 40);
+
+  --secondary: oklch(0.955 0.017 30);
+  --secondary-foreground: oklch(0.45 0.05 15);
+
+  --muted: oklch(0.955 0.013 40);
+  --muted-foreground: oklch(0.605 0.028 20);
+
+  --accent: oklch(0.94 0.028 330);
+  --accent-foreground: oklch(0.42 0.06 330);
+
+  --destructive: oklch(0.65 0.15 20);
+  --destructive-foreground: oklch(0.99 0.004 40);
+
+  --border: oklch(0.9 0.018 25);
+  --input: oklch(0.93 0.015 25);
+  --ring: oklch(0.78 0.09 350);
+
+  /* the two people ------------------------------------------------------- */
+  /* column a — peach / rose */
+  --a-tint: oklch(0.975 0.022 35);
+  --a-accent: oklch(0.73 0.115 25);
+  --a-soft: oklch(0.93 0.045 35);
+  --a-glow: oklch(0.85 0.09 30 / 45%);
+
+  /* column b — lilac / lavender */
+  --b-tint: oklch(0.972 0.022 305);
+  --b-accent: oklch(0.66 0.12 300);
+  --b-soft: oklch(0.925 0.045 305);
+  --b-glow: oklch(0.82 0.09 305 / 45%);
+
+  /* night — used when someone is asleep */
+  --night: oklch(0.32 0.06 285);
+  --night-soft: oklch(0.42 0.07 285);
+  --done: oklch(0.72 0.075 155);
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-a-tint: var(--a-tint);
+  --color-a-accent: var(--a-accent);
+  --color-a-soft: var(--a-soft);
+  --color-b-tint: var(--b-tint);
+  --color-b-accent: var(--b-accent);
+  --color-b-soft: var(--b-soft);
+  --color-night: var(--night);
+  --color-night-soft: var(--night-soft);
+  --color-done: var(--done);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+    /* two soft clouds of colour, one per person, behind everything */
+    background-image:
+      radial-gradient(
+        58rem 42rem at 8% -8%,
+        oklch(0.9 0.055 30 / 55%),
+        transparent 62%
+      ),
+      radial-gradient(
+        56rem 40rem at 96% 4%,
+        oklch(0.89 0.055 305 / 52%),
+        transparent 60%
+      ),
+      radial-gradient(
+        44rem 40rem at 50% 108%,
+        oklch(0.93 0.04 90 / 45%),
+        transparent 65%
+      );
+    background-attachment: fixed;
+  }
+
+  /* fine paper grain so the pastels don't look flat */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.32;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background: var(--a-soft);
+  }
+  .twemoji {
+    display: inline-block;
+    height: 1em;
+    width: 1em;
+    margin: 0 0.05em 0 0.1em;
+    vertical-align: -0.1em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+    font-variation-settings: "SOFT" 60, "WONK" 1;
+  }
+
+  /* scrollbars that don't ruin the mood */
+  .pretty-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .pretty-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .pretty-scroll::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 99px;
+  }
+  .pretty-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* soft twinkle for the sleeping starfield */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
