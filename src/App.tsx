@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react"
 import { motion } from "motion/react"
-import { CloudOff, Heart } from "lucide-react"
+import { Heart } from "lucide-react"
 
 import { DaySwitcher } from "@/components/day-switcher"
+import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
 import { PersonColumn } from "@/components/person-column"
-import { ShimmeringText } from "@/components/shimmering-text"
 import { useOurDays } from "@/lib/store"
-import { offsetBetween, sleepStateIn } from "@/lib/time"
+import { offsetBetween, resolveSleep } from "@/lib/time"
 import { PEOPLE } from "@/lib/types"
 import { useNow } from "@/lib/use-now"
 
@@ -37,13 +37,14 @@ export default function App() {
     removeTodo,
     clearCompleted,
     saveProfile,
+    setSleeping,
   } = useOurDays(dayOffset)
 
   const gap = offsetBetween(profiles.a.timezone, profiles.b.timezone, now)
 
   const subtitle = useMemo(() => {
-    const aSleep = sleepStateIn(profiles.a.timezone, now).asleep
-    const bSleep = sleepStateIn(profiles.b.timezone, now).asleep
+    const aSleep = resolveSleep(profiles.a, now).asleep
+    const bSleep = resolveSleep(profiles.b, now).asleep
 
     if (aSleep && bSleep) return "you're both asleep. the list will wait."
     if (aSleep) return `${profiles.a.name} is asleep · ${profiles.b.name} is up`
@@ -79,6 +80,7 @@ export default function App() {
             onRemove={removeTodo}
             onRename={(name) => saveProfile({ ...profiles[id], name })}
             onClearCompleted={() => clearCompleted(id, columns[id].day)}
+            onSetSleeping={(asleep) => setSleeping(id, asleep)}
           />
         ))}
       </main>
@@ -111,24 +113,11 @@ export default function App() {
         </motion.div>
       </div>
 
-      <footer className="relative z-10 flex flex-col items-center gap-2 pb-2 text-center">
-        <ShimmeringText
-          text={note}
-          duration={3.2}
-          className="font-display text-[0.82rem] font-light [--color:var(--muted-foreground)] [--shimmering-color:var(--a-accent)]"
-        />
-
-        {mode === "local" ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/60 px-2.5 py-1 text-[0.65rem] text-muted-foreground ring-1 ring-black/5">
-            <CloudOff className="size-3" />
-            saved on this device only — not syncing yet
-          </span>
-        ) : null}
-
-        {status === "error" && error ? (
-          <span className="text-[0.65rem] text-destructive/80">{error}</span>
-        ) : null}
-      </footer>
+      <OurFooter
+        note={note}
+        mode={mode}
+        error={status === "error" ? error : null}
+      />
     </div>
   )
 }

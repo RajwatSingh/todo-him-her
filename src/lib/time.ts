@@ -6,6 +6,8 @@
  * rather than by arithmetic we'd get wrong twice a year.
  */
 
+import type { Profile } from "@/lib/types"
+
 /** Someone is considered asleep from midnight until this hour, their time. */
 export const SLEEP_START_HOUR = 0
 export const SLEEP_END_HOUR = 8
@@ -137,5 +139,58 @@ export function offsetBetween(tzA: string, tzB: string, at: Date = new Date()) {
   return {
     hours,
     label: `${label}h ${hours >= 0 ? "ahead" : "behind"}`,
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* manual sleep — "goodnight" / "good morning"                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The sleep state actually shown for someone: the clock's guess, unless they
+ * tapped goodnight (or tapped that they're still up), in which case their own
+ * word wins.
+ */
+export type ResolvedSleep = SleepState & {
+  /** true when this is their own tap rather than the clock's guess */
+  manual: boolean
+  /** minutes since they tapped, when `manual` */
+  minutesSinceTap: number
+}
+
+/**
+ * A tap is honoured only until the clock crosses the next sleep boundary.
+ * Past that point the clock has caught up with them — or they forgot to tap
+ * back — and either way the schedule is the better answer again.
+ */
+export function resolveSleep(
+  profile: Pick<Profile, "timezone" | "sleep_override" | "sleep_override_at">,
+  at: Date = new Date()
+): ResolvedSleep {
+  const auto = sleepStateIn(profile.timezone, at)
+  const plain = { ...auto, manual: false, minutesSinceTap: 0 }
+
+  if (!profile.sleep_override || !profile.sleep_override_at) return plain
+
+  const tappedAt = new Date(profile.sleep_override_at)
+  if (Number.isNaN(tappedAt.getTime())) return plain
+
+  // stale: the clock itself has flipped since the tap
+  if (sleepStateIn(profile.timezone, tappedAt).asleep !== auto.asleep) return plain
+
+  const asleep = profile.sleep_override === "asleep"
+  // nothing to override — they and the clock agree
+  if (asleep === auto.asleep) return plain
+
+  const minutesSinceTap = Math.max(0, (at.getTime() - tappedAt.getTime()) / 60000)
+
+  return {
+    asleep,
+    // the clock flips at the same moment either way, so the countdown to the
+    // next boundary is unchanged by the tap
+    minutesUntilChange: auto.minutesUntilChange,
+    progress: asleep ? 0 : auto.progress,
+    manual: true,
+    minutesSinceTap,
   }
 }

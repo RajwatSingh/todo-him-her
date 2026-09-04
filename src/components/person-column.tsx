@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { MoonStar, Plus, Sun } from "lucide-react"
+import { Coffee, MoonStar, Plus, Sun, Sunrise } from "lucide-react"
 
 import { NightSky } from "@/components/night-sky"
 import { TodoItem } from "@/components/todo-item"
@@ -10,7 +10,7 @@ import {
   clockIn,
   humanDuration,
   longDateIn,
-  sleepStateIn,
+  resolveSleep,
 } from "@/lib/time"
 import type { PersonId, Profile, Todo, TodoNode } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -28,6 +28,8 @@ export type PersonColumnProps = {
   onRemove: (id: string) => void
   onRename: (name: string) => void
   onClearCompleted: () => void
+  /** their own "goodnight" / "good morning", which outranks the clock */
+  onSetSleeping: (asleep: boolean) => void
 }
 
 export function PersonColumn({
@@ -43,6 +45,7 @@ export function PersonColumn({
   onRemove,
   onRename,
   onClearCompleted,
+  onSetSleeping,
 }: PersonColumnProps) {
   const [draft, setDraft] = useState("")
 
@@ -51,7 +54,7 @@ export function PersonColumn({
   const glow = isA ? "var(--a-glow)" : "var(--b-glow)"
   const tint = isA ? "var(--a-tint)" : "var(--b-tint)"
 
-  const sleep = sleepStateIn(profile.timezone, now)
+  const sleep = resolveSleep(profile, now)
   const time = clockIn(profile.timezone, now)
   const dateLabel = longDateIn(profile.timezone, dayOffset, now)
   const progress = total === 0 ? 0 : done / total
@@ -151,7 +154,7 @@ export function PersonColumn({
             </div>
           </div>
 
-          {/* status pill */}
+          {/* status pill + the goodnight switch */}
           <div className="mt-3.5 flex flex-wrap items-center gap-2">
             <motion.span
               layout
@@ -172,8 +175,14 @@ export function PersonColumn({
                   >
                     <MoonStar className="size-3.5" />
                   </motion.span>
-                  fast asleep · wakes in{" "}
-                  {humanDuration(sleep.minutesUntilChange)}
+                  {sleep.manual
+                    ? `sleeping · tucked in ${sinceLabel(sleep.minutesSinceTap)}`
+                    : `fast asleep · wakes in ${humanDuration(sleep.minutesUntilChange)}`}
+                </>
+              ) : sleep.manual ? (
+                <>
+                  <Coffee className="size-3.5" style={{ color: tone }} />
+                  still up · {sinceLabel(sleep.minutesSinceTap)}
                 </>
               ) : (
                 <>
@@ -191,6 +200,38 @@ export function PersonColumn({
             >
               {dateLabel}
             </span>
+
+            {/* Their own word about it — the clock is only ever a guess. */}
+            <motion.button
+              layout
+              type="button"
+              whileTap={{ scale: 0.94 }}
+              onClick={() => onSetSleeping(!sleep.asleep)}
+              title={
+                sleep.asleep
+                  ? `mark ${profile.name} as awake`
+                  : `mark ${profile.name} as asleep`
+              }
+              className={cn(
+                "ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
+                "text-[0.68rem] font-semibold tracking-wide transition-colors",
+                sleep.asleep
+                  ? "bg-white/10 text-white/70 ring-1 ring-white/15 hover:bg-white/20 hover:text-white"
+                  : "text-muted-foreground/80 ring-1 ring-black/5 hover:bg-white/70 hover:text-foreground"
+              )}
+            >
+              {sleep.asleep ? (
+                <>
+                  <Sunrise className="size-3.5" />
+                  good morning
+                </>
+              ) : (
+                <>
+                  <MoonStar className="size-3.5" />
+                  goodnight
+                </>
+              )}
+            </motion.button>
           </div>
 
           {/* progress */}
@@ -319,6 +360,11 @@ export function PersonColumn({
       </div>
     </motion.section>
   )
+}
+
+/** "just now" / "20m ago" — how long they've been in this state. */
+function sinceLabel(minutes: number) {
+  return minutes < 1 ? "just now" : `${humanDuration(minutes)} ago`
 }
 
 function EmptyState({ asleep, name }: { asleep: boolean; name: string }) {

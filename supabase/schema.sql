@@ -11,8 +11,15 @@ create table if not exists public.profiles (
   name      text not null default '',
   emoji     text not null default '',
   timezone  text not null,
-  location  text not null default ''
+  location  text not null default '',
+  -- a tap on "goodnight" / "good morning". null = trust the clock instead.
+  sleep_override    text check (sleep_override in ('asleep', 'awake')),
+  sleep_override_at timestamptz
 );
+
+-- for lists created before the goodnight switch existed
+alter table public.profiles add column if not exists sleep_override    text;
+alter table public.profiles add column if not exists sleep_override_at timestamptz;
 
 insert into public.profiles (id, name, emoji, timezone, location) values
   ('a', 'me',  '🌸', 'America/New_York', 'Gettysburg, PA'),

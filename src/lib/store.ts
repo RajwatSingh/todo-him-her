@@ -73,6 +73,9 @@ export function useOurDays(dayOffset: number) {
   const todosRef = useRef<Todo[]>([])
   todosRef.current = todos
 
+  const profilesRef = useRef(profiles)
+  profilesRef.current = profiles
+
   const refresh = useCallback(async () => {
     try {
       const [nextTodos, nextProfiles] = await Promise.all([
@@ -214,6 +217,23 @@ export function useOurDays(dayOffset: number) {
     })
   }, [])
 
+  /**
+   * "goodnight" / "good morning" — their own word about whether they're up,
+   * which outranks the clock until the clock next crosses a sleep boundary.
+   * Saved on the profile, so it travels to the other phone like a name change.
+   */
+  const setSleeping = useCallback((id: PersonId, asleep: boolean) => {
+    const next: Profile = {
+      ...profilesRef.current[id],
+      sleep_override: asleep ? "asleep" : "awake",
+      sleep_override_at: new Date().toISOString(),
+    }
+    setProfiles((prev) => ({ ...prev, [id]: next }))
+    void backend.saveProfile(next).catch(() => {
+      /* the light stays on locally; nothing worth interrupting the page for */
+    })
+  }, [])
+
   /** Per-person view of the currently selected day, already nested. */
   const columns = useMemo(() => {
     const build = (owner: PersonId) => {
@@ -242,5 +262,6 @@ export function useOurDays(dayOffset: number) {
     removeTodo,
     clearCompleted,
     saveProfile,
+    setSleeping,
   }
 }
