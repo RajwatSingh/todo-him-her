@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react"
 import { motion } from "motion/react"
-import { Heart } from "lucide-react"
-
 import { DaySwitcher } from "@/components/day-switcher"
 import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
 import { PersonColumn } from "@/components/person-column"
+import { TimeDials } from "@/components/time-dials"
 import { useOurDays } from "@/lib/store"
 import { offsetBetween, resolveSleep } from "@/lib/time"
 import { PEOPLE } from "@/lib/types"
@@ -47,9 +46,9 @@ export default function App() {
     const bSleep = resolveSleep(profiles.b, now).asleep
 
     if (aSleep && bSleep) return "you're both asleep. the list will wait."
-    if (aSleep) return `${profiles.a.name} is asleep · ${profiles.b.name} is up`
-    if (bSleep) return `${profiles.b.name} is asleep · ${profiles.a.name} is up`
-    return `both awake at the same time — ${gap.label.replace(" ahead", " apart").replace(" behind", " apart")}`
+    if (aSleep) return `${profiles.a.name} is asleep while ${profiles.b.name} is up`
+    if (bSleep) return `${profiles.b.name} is asleep while ${profiles.a.name} is up`
+    return `both awake at once, ${gap.label.replace(" ahead", " apart").replace(" behind", " apart")}`
   }, [gap.label, now, profiles])
 
   const note = NOTES[Math.floor(Date.now() / 86_400_000) % NOTES.length]
@@ -58,13 +57,15 @@ export default function App() {
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pb-10 sm:px-6">
+      <TimeDials a={profiles.a} b={profiles.b} now={now} />
+
       <HelloHeader subtitle={subtitle} />
 
       <div className="pt-4 pb-5">
         <DaySwitcher value={dayOffset} onChange={setDayOffset} />
       </div>
 
-      <main className="relative z-10 grid flex-1 grid-cols-1 items-start gap-4 md:grid-cols-2 md:gap-5">
+      <main className="relative z-10 grid grid-cols-1 items-start gap-4 md:grid-cols-2 md:gap-5">
         {PEOPLE.map((id) => (
           <PersonColumn
             key={id}
@@ -85,31 +86,34 @@ export default function App() {
         ))}
       </main>
 
-      {/* the thread between the two columns */}
-      <div className="pointer-events-none relative z-10 flex justify-center py-6">
+      {/* the seam between the two columns: one hairline, the shared count
+          resting on it, reaching out to each of them */}
+      <div className="pointer-events-none relative z-10 flex justify-center py-7">
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex items-center gap-2 text-[0.72rem] text-muted-foreground"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.7 }}
+          className="flex w-full max-w-md items-center gap-3"
         >
-          <span className="h-px w-10 bg-gradient-to-r from-transparent to-border" />
-          <motion.span
-            animate={{ scale: [1, 1.16, 1] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Heart
-              className="size-3.5"
-              style={{ color: "var(--a-accent)" }}
-              fill="currentColor"
-            />
-          </motion.span>
-          <span>
-            {totalAll > 0
-              ? `${totalDone} of ${totalAll} done between you`
-              : note}
-          </span>
-          <span className="h-px w-10 bg-gradient-to-l from-transparent to-border" />
+          <span
+            className="h-px flex-1"
+            style={{
+              background:
+                "linear-gradient(to right, transparent, var(--a-soft))",
+            }}
+          />
+          {totalAll > 0 ? (
+            <span className="font-display text-[0.8rem] whitespace-nowrap text-muted-foreground italic">
+              {totalDone} of {totalAll} done between you
+            </span>
+          ) : null}
+          <span
+            className="h-px flex-1"
+            style={{
+              background:
+                "linear-gradient(to left, transparent, var(--b-soft))",
+            }}
+          />
         </motion.div>
       </div>
 

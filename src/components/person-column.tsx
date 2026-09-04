@@ -8,6 +8,7 @@ import { Twemoji } from "@/components/twemoji"
 import { guessIcon } from "@/lib/icons"
 import {
   clockIn,
+  dayPhaseIn,
   humanDuration,
   longDateIn,
   resolveSleep,
@@ -52,7 +53,8 @@ export function PersonColumn({
   const isA = profile.id === "a"
   const tone = isA ? "var(--a-accent)" : "var(--b-accent)"
   const glow = isA ? "var(--a-glow)" : "var(--b-glow)"
-  const tint = isA ? "var(--a-tint)" : "var(--b-tint)"
+  // the ground is set by the hour where *they* are, not where the page is
+  const tint = `var(--ground-${dayPhaseIn(profile.timezone, now)})`
 
   const sleep = resolveSleep(profile, now)
   const time = clockIn(profile.timezone, now)
@@ -73,9 +75,9 @@ export function PersonColumn({
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 240, damping: 28 }}
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-[1.75rem]",
-        "border border-white/60 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.03),0_12px_38px_-12px_rgba(0,0,0,0.10)]",
-        "backdrop-blur-xl"
+        "relative flex flex-col overflow-hidden rounded-xl",
+        "border border-border bg-card",
+        "shadow-[0_1px_2px_rgba(20,26,38,0.04)]"
       )}
       style={{ backgroundColor: tint }}
     >
@@ -101,7 +103,7 @@ export function PersonColumn({
                   Kept to the empty strip below the progress bar so the white
                   header text never sits on the light end of the gradient. */}
               <div
-                className="absolute inset-x-0 bottom-0 h-4"
+                className="absolute inset-x-0 bottom-0 h-7"
                 style={{
                   background: `linear-gradient(to bottom, transparent, ${tint})`,
                 }}
@@ -110,16 +112,22 @@ export function PersonColumn({
           ) : null}
         </AnimatePresence>
 
-        <div className="relative px-5 pt-5 pb-4">
+        <div className="relative px-5 pt-5 pb-7">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
-              <motion.span
-                className="text-xl"
-                animate={sleep.asleep ? { rotate: [0, -8, 0] } : { rotate: 0 }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <Twemoji className="size-6">{profile.emoji}</Twemoji>
-              </motion.span>
+              {/* one filled, one open — the same pair as the favicon, so the
+                  two of them are told apart by shape as well as by colour */}
+              <span
+                className="mb-0.5 size-2.5 shrink-0 self-center rounded-full"
+                aria-hidden
+                style={
+                  isA
+                    ? { backgroundColor: sleep.asleep ? "#fff" : tone }
+                    : {
+                        border: `1.5px solid ${sleep.asleep ? "#fff" : tone}`,
+                      }
+                }
+              />
 
               <input
                 value={profile.name}
@@ -127,7 +135,7 @@ export function PersonColumn({
                 aria-label="name"
                 size={Math.max(profile.name.length, 3)}
                 className={cn(
-                  "min-w-0 max-w-[9rem] bg-transparent font-display text-2xl leading-none font-light",
+                  "min-w-0 max-w-[9rem] bg-transparent font-display text-[1.6rem] leading-none font-light tracking-tight",
                   "outline-none transition-colors",
                   sleep.asleep ? "text-white/95" : "text-foreground"
                 )}
@@ -159,11 +167,11 @@ export function PersonColumn({
             <motion.span
               layout
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
-                "text-[0.7rem] font-semibold tracking-wide",
+                "inline-flex items-center gap-1.5 rounded-md px-2 py-1",
+                "text-[0.7rem] font-medium",
                 sleep.asleep
-                  ? "bg-white/12 text-white/90 ring-1 ring-white/20"
-                  : "bg-white/70 text-foreground/75 ring-1 ring-black/5"
+                  ? "bg-white/10 text-white/90 ring-1 ring-white/15"
+                  : "bg-background/70 text-foreground/75 ring-1 ring-border"
               )}
             >
               {sleep.asleep ? (
@@ -176,13 +184,13 @@ export function PersonColumn({
                     <MoonStar className="size-3.5" />
                   </motion.span>
                   {sleep.manual
-                    ? `sleeping · tucked in ${sinceLabel(sleep.minutesSinceTap)}`
-                    : `fast asleep · wakes in ${humanDuration(sleep.minutesUntilChange)}`}
+                    ? `asleep, tucked in ${sinceLabel(sleep.minutesSinceTap)}`
+                    : `asleep, wakes in ${humanDuration(sleep.minutesUntilChange)}`}
                 </>
               ) : sleep.manual ? (
                 <>
                   <Coffee className="size-3.5" style={{ color: tone }} />
-                  still up · {sinceLabel(sleep.minutesSinceTap)}
+                  still up, {sinceLabel(sleep.minutesSinceTap)}
                 </>
               ) : (
                 <>
@@ -213,11 +221,11 @@ export function PersonColumn({
                   : `mark ${profile.name} as asleep`
               }
               className={cn(
-                "ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
-                "text-[0.68rem] font-semibold tracking-wide transition-colors",
+                "ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1",
+                "text-[0.68rem] font-medium transition-colors",
                 sleep.asleep
-                  ? "bg-white/10 text-white/70 ring-1 ring-white/15 hover:bg-white/20 hover:text-white"
-                  : "text-muted-foreground/80 ring-1 ring-black/5 hover:bg-white/70 hover:text-foreground"
+                  ? "text-white/65 ring-1 ring-white/15 hover:bg-white/12 hover:text-white"
+                  : "text-muted-foreground ring-1 ring-border hover:bg-background/80 hover:text-foreground"
               )}
             >
               {sleep.asleep ? (
@@ -246,7 +254,7 @@ export function PersonColumn({
                 {total === 0
                   ? "nothing planned yet"
                   : done === total
-                    ? "everything done 🎉"
+                    ? "everything done"
                     : `${done} of ${total} done`}
               </span>
               {done > 0 ? (
@@ -257,7 +265,7 @@ export function PersonColumn({
                     "text-[0.66rem] underline-offset-2 transition-colors hover:underline",
                     sleep.asleep
                       ? "text-white/45 hover:text-white/80"
-                      : "text-muted-foreground/70 hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   clear done
@@ -267,8 +275,8 @@ export function PersonColumn({
 
             <div
               className={cn(
-                "h-1.5 w-full overflow-hidden rounded-full",
-                sleep.asleep ? "bg-white/12" : "bg-black/6"
+                "h-[3px] w-full overflow-hidden rounded-full",
+                sleep.asleep ? "bg-white/12" : "bg-foreground/8"
               )}
             >
               <motion.div
@@ -289,11 +297,11 @@ export function PersonColumn({
       <div className="px-4 pt-3">
         <div
           className={cn(
-            "flex items-center gap-2 rounded-2xl bg-white/65 px-3 py-2",
-            "ring-1 ring-black/5 transition-shadow focus-within:ring-2",
-            "focus-within:shadow-[0_4px_20px_-6px_var(--tone-glow)]"
+            "flex items-center gap-2 rounded-lg bg-background/70 px-3 py-2",
+            "ring-1 ring-border transition-colors",
+            "focus-within:ring-[1.5px] focus-within:ring-[var(--tone)]"
           )}
-          style={{ ["--tone-glow" as string]: glow }}
+          style={{ ["--tone" as string]: tone }}
         >
           <span className="grid size-5 shrink-0 place-items-center opacity-45">
             {draft.trim() ? (
@@ -320,7 +328,7 @@ export function PersonColumn({
                 exit={{ opacity: 0, scale: 0.7 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={submit}
-                className="rounded-full px-2.5 py-1 text-[0.7rem] font-semibold text-white"
+                className="rounded-md px-2.5 py-1 text-[0.7rem] font-medium text-white"
                 style={{ background: tone }}
               >
                 add
@@ -374,22 +382,10 @@ function EmptyState({ asleep, name }: { asleep: boolean; name: string }) {
       animate={{ opacity: 1 }}
       className="grid h-36 place-items-center px-6 text-center"
     >
-      <p className="text-[0.8rem] leading-relaxed text-muted-foreground/75">
-        {asleep ? (
-          <>
-            <span className="mb-1 block text-lg">
-              <Twemoji className="size-5">🌙</Twemoji>
-            </span>
-            {name} is asleep. the day hasn't started yet.
-          </>
-        ) : (
-          <>
-            <span className="mb-1 block text-lg">
-              <Twemoji className="size-5">🌱</Twemoji>
-            </span>
-            a blank day. add the first thing.
-          </>
-        )}
+      <p className="font-display text-[0.85rem] leading-relaxed text-muted-foreground italic">
+        {asleep
+          ? `${name} is asleep. the day hasn't started yet.`
+          : "a blank day. add the first thing."}
       </p>
     </motion.div>
   )

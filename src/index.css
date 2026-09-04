@@ -3,63 +3,71 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---------------------------------------------------------------------------
-   our days — soft pastel theme
-   blush · lavender · cream. everything rounded, nothing shouts.
+   our days — ink on cool paper
+   Two people, two clocks. The only colour in the page is the colour that
+   tells you something: which of them a mark belongs to, and where each of
+   them is in their own day.
 --------------------------------------------------------------------------- */
 
 :root {
-  --radius: 1.25rem;
+  --radius: 0.85rem;
 
   /* page */
-  --background: oklch(0.982 0.009 40);
-  --foreground: oklch(0.36 0.035 15);
+  --background: oklch(0.976 0.003 250);
+  --foreground: oklch(0.255 0.018 255);
 
   /* surfaces */
-  --card: oklch(1 0 0 / 72%);
-  --card-foreground: oklch(0.36 0.035 15);
-  --popover: oklch(0.995 0.005 40);
-  --popover-foreground: oklch(0.36 0.035 15);
+  --card: oklch(0.995 0.002 250);
+  --card-foreground: oklch(0.255 0.018 255);
+  --popover: oklch(0.995 0.002 250);
+  --popover-foreground: oklch(0.255 0.018 255);
 
-  /* blush primary */
-  --primary: oklch(0.72 0.115 15);
-  --primary-foreground: oklch(0.99 0.004 40);
+  --primary: oklch(0.36 0.028 255);
+  --primary-foreground: oklch(0.99 0.002 250);
 
-  --secondary: oklch(0.955 0.017 30);
-  --secondary-foreground: oklch(0.45 0.05 15);
+  --secondary: oklch(0.955 0.004 250);
+  --secondary-foreground: oklch(0.38 0.02 255);
 
-  --muted: oklch(0.955 0.013 40);
-  --muted-foreground: oklch(0.605 0.028 20);
+  --muted: oklch(0.955 0.004 250);
+  --muted-foreground: oklch(0.515 0.015 255);
 
-  --accent: oklch(0.94 0.028 330);
-  --accent-foreground: oklch(0.42 0.06 330);
+  --accent: oklch(0.945 0.006 250);
+  --accent-foreground: oklch(0.34 0.022 255);
 
-  --destructive: oklch(0.65 0.15 20);
-  --destructive-foreground: oklch(0.99 0.004 40);
+  --destructive: oklch(0.52 0.11 28);
+  --destructive-foreground: oklch(0.99 0.002 250);
 
-  --border: oklch(0.9 0.018 25);
-  --input: oklch(0.93 0.015 25);
-  --ring: oklch(0.78 0.09 350);
+  --border: oklch(0.895 0.005 255);
+  --input: oklch(0.915 0.005 255);
+  --ring: oklch(0.55 0.075 78);
 
   /* the two people ------------------------------------------------------- */
-  /* column a — peach / rose */
-  --a-tint: oklch(0.975 0.022 35);
-  --a-accent: oklch(0.73 0.115 25);
-  --a-soft: oklch(0.93 0.045 35);
-  --a-glow: oklch(0.85 0.09 30 / 45%);
+  /* One is on the warm side of the day, the other on the cool side. That is
+     the whole distinction — no pastels, no hue that means "his" or "hers". */
 
-  /* column b — lilac / lavender */
-  --b-tint: oklch(0.972 0.022 305);
-  --b-accent: oklch(0.66 0.12 300);
-  --b-soft: oklch(0.925 0.045 305);
-  --b-glow: oklch(0.82 0.09 305 / 45%);
+  /* column a — antique brass */
+  --a-accent: oklch(0.55 0.075 78);
+  --a-soft: oklch(0.55 0.075 78 / 26%);
+  --a-glow: oklch(0.55 0.075 78 / 18%);
 
-  /* night — used when someone is asleep */
-  --night: oklch(0.32 0.06 285);
-  --night-soft: oklch(0.42 0.07 285);
-  --done: oklch(0.72 0.075 155);
+  /* column b — slate teal */
+  --b-accent: oklch(0.5 0.058 205);
+  --b-soft: oklch(0.5 0.058 205 / 26%);
+  --b-glow: oklch(0.5 0.058 205 / 18%);
 
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  /* the ground under a column, by the hour where that person is ---------- */
+  --ground-dawn: oklch(0.987 0.011 240);
+  --ground-day: oklch(0.997 0.001 250);
+  --ground-dusk: oklch(0.986 0.019 78);
+  --ground-late: oklch(0.981 0.013 265);
+
+  /* night — while someone is asleep */
+  --night: oklch(0.235 0.028 258);
+  --night-soft: oklch(0.315 0.032 255);
+  --done: oklch(0.55 0.06 155);
+
+  --font-display: "Spectral", ui-serif, Georgia, serif;
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -83,10 +91,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-a-tint: var(--a-tint);
   --color-a-accent: var(--a-accent);
   --color-a-soft: var(--a-soft);
-  --color-b-tint: var(--b-tint);
   --color-b-accent: var(--b-accent);
   --color-b-soft: var(--b-soft);
   --color-night: var(--night);
@@ -96,10 +102,10 @@
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
 
-  --radius-sm: calc(var(--radius) - 8px);
-  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 5px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 6px);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 @layer base {
@@ -114,40 +120,37 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     min-height: 100dvh;
-    /* two soft clouds of colour, one per person, behind everything */
+    /* One faint warm-to-cool traverse across the page: his side, her side.
+       Low enough that it reads as light rather than as colour. */
     background-image:
       radial-gradient(
-        58rem 42rem at 8% -8%,
-        oklch(0.9 0.055 30 / 55%),
-        transparent 62%
+        70rem 50rem at 4% -10%,
+        oklch(0.9 0.035 78 / 26%),
+        transparent 58%
       ),
       radial-gradient(
-        56rem 40rem at 96% 4%,
-        oklch(0.89 0.055 305 / 52%),
-        transparent 60%
-      ),
-      radial-gradient(
-        44rem 40rem at 50% 108%,
-        oklch(0.93 0.04 90 / 45%),
-        transparent 65%
+        70rem 50rem at 100% 2%,
+        oklch(0.88 0.03 210 / 24%),
+        transparent 56%
       );
     background-attachment: fixed;
   }
 
-  /* fine paper grain so the pastels don't look flat */
+  /* fine grain so a flat paper isn't a flat screen */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.32;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+    opacity: 0.2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
   }
 
   ::selection {
-    background: var(--a-soft);
+    background: oklch(0.55 0.075 78 / 22%);
   }
+
   .twemoji {
     display: inline-block;
     height: 1em;
@@ -160,16 +163,16 @@
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
-    font-variation-settings: "SOFT" 60, "WONK" 1;
+    font-feature-settings: "onum" 1;
   }
 
-  /* scrollbars that don't ruin the mood */
+  /* scrollbars that stay out of the way */
   .pretty-scroll {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
   .pretty-scroll::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
   }
   .pretty-scroll::-webkit-scrollbar-thumb {
     background: var(--border);
@@ -184,11 +187,11 @@
 @keyframes twinkle {
   0%,
   100% {
-    opacity: 0.15;
+    opacity: 0.12;
     transform: scale(0.8);
   }
   50% {
-    opacity: 0.9;
+    opacity: 0.8;
     transform: scale(1);
   }
 }

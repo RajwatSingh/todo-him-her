@@ -89,8 +89,8 @@ export function TodoItem({
     >
       <div
         className={cn(
-          "relative flex items-start gap-2 rounded-2xl px-2 py-1.5 transition-colors",
-          "hover:bg-white/55"
+          "relative flex items-start gap-2 rounded-lg px-2 py-1.5 transition-colors",
+          "hover:bg-foreground/[0.035]"
         )}
       >
         {/* expand / collapse */}
@@ -104,13 +104,13 @@ export function TodoItem({
             expanded && "rotate-90"
           )}
         >
-          <ChevronRight className="size-3.5" strokeWidth={2.5} />
+          <ChevronRight className="size-3.5" strokeWidth={2} />
         </button>
 
         <div className="mt-0.5">
           <IconPicker
             value={node.icon}
-            tone={glow}
+            tone={tone}
             onChange={(icon) => onPatch(node.id, { icon })}
           />
         </div>
@@ -120,7 +120,7 @@ export function TodoItem({
           onCheckedChange={() => onToggle(node.id)}
           aria-label={node.completed ? "mark as not done" : "mark as done"}
           className={cn(
-            "mt-1.5 size-[1.05rem] shrink-0 rounded-full border-black/15 bg-white/70",
+            "mt-1.5 size-[1rem] shrink-0 rounded-[5px] border-input bg-card",
             "transition-transform active:scale-90",
             "data-[state=checked]:border-transparent data-[state=checked]:text-white"
           )}
@@ -191,10 +191,10 @@ export function TodoItem({
                     if (!node.description) setShowNote(false)
                   }}
                   className={cn(
-                    "mt-1 w-full resize-none overflow-hidden rounded-md border-l-2 py-0.5 pl-2",
-                    "bg-transparent text-[0.76rem] leading-relaxed text-muted-foreground",
+                    "mt-1 w-full resize-none overflow-hidden rounded-sm border-l py-0.5 pl-2.5",
+                    "bg-transparent font-display text-[0.8rem] leading-relaxed text-muted-foreground italic",
                     "outline-none transition-colors placeholder:text-muted-foreground/45",
-                    "focus:bg-black/[0.035]"
+                    "focus:bg-foreground/[0.03]"
                   )}
                   style={{ borderColor: glow }}
                 />
@@ -257,8 +257,7 @@ export function TodoItem({
             className="overflow-hidden"
           >
             <div
-              className="ml-[1.4rem] border-l pl-2"
-              style={{ borderColor: glow }}
+              className="ml-[1.4rem] border-l border-border pl-2.5"
             >
               <ul className="space-y-0.5 pt-0.5">
                 <AnimatePresence initial={false}>
@@ -330,13 +329,12 @@ function RowAction({
       title={label}
       aria-label={label}
       onClick={onClick}
-      whileHover={{ scale: 1.15 }}
-      whileTap={{ scale: 0.88 }}
+      whileTap={{ scale: 0.9 }}
       className={cn(
-        "grid size-6 place-items-center rounded-full text-muted-foreground/70 transition-colors",
+        "grid size-6 place-items-center rounded-md text-muted-foreground/70 transition-colors",
         destructive
           ? "hover:bg-destructive/10 hover:text-destructive"
-          : "hover:bg-black/5 hover:text-foreground"
+          : "hover:bg-foreground/6 hover:text-foreground"
       )}
     >
       {children}

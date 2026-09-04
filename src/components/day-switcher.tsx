@@ -40,10 +40,10 @@ export function DaySwitcher({
           transition={{ duration: 0.25 }}
           onClick={() => onChange(0)}
           className={cn(
-            "rounded-full px-4 py-1.5 text-[0.78rem] font-semibold tracking-wide",
-            "bg-white/70 text-foreground/80 ring-1 ring-black/5 backdrop-blur",
-            "transition-colors hover:bg-white/90",
-            value !== 0 && "text-primary"
+            "rounded-md px-3.5 py-1.5 text-[0.78rem] font-medium",
+            "bg-card text-foreground/80 ring-1 ring-border",
+            "transition-colors hover:bg-card hover:text-foreground",
+            value !== 0 && "font-display text-[0.85rem] italic"
           )}
         >
           {label}
@@ -74,11 +74,10 @@ function Arrow({
       type="button"
       aria-label={label}
       onClick={onClick}
-      whileHover={{ scale: 1.12 }}
-      whileTap={{ scale: 0.9 }}
-      className="grid size-8 place-items-center rounded-full text-muted-foreground/70 transition-colors hover:bg-white/70 hover:text-foreground"
+      whileTap={{ scale: 0.92 }}
+      className="grid size-8 place-items-center rounded-md text-muted-foreground/70 transition-colors hover:bg-card hover:text-foreground"
     >
-      <Icon className="size-4" strokeWidth={2.5} />
+      <Icon className="size-4" strokeWidth={2} />
     </motion.button>
   )
 }

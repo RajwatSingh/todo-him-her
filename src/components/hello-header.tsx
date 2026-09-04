@@ -22,7 +22,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
               transition={{ duration: 0.55, ease: "easeIn" }}
             >
               <LoveEffect
-                className="h-12 text-[var(--a-accent)] sm:h-16"
+                className="h-11 text-[var(--a-accent)] sm:h-14"
                 onAnimationComplete={() => {
                   // let it sit a moment before handing over to माया
                   setTimeout(() => setStep(1), 1000)
@@ -36,7 +36,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <MayaEffect className="h-12 text-[var(--b-accent)] sm:h-15" />
+              <MayaEffect className="h-11 text-[var(--b-accent)] sm:h-14" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -46,7 +46,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.2 }}
-        className="font-display text-[2.6rem] leading-none font-normal tracking-tight text-foreground/90 sm:text-[3.25rem]"
+        className="font-display text-[2.4rem] leading-none font-extralight tracking-tight text-foreground sm:text-[3rem]"
       >
         our days
       </motion.h1>
@@ -55,7 +55,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.35 }}
-        className="max-w-md text-[0.8rem] text-muted-foreground"
+        className="max-w-md text-[0.78rem] text-muted-foreground"
       >
         {subtitle}
       </motion.p>

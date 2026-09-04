@@ -194,3 +194,24 @@ export function resolveSleep(
     minutesSinceTap,
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* where someone is in their own day                                          */
+/* -------------------------------------------------------------------------- */
+
+export type DayPhase = "dawn" | "day" | "dusk" | "late"
+
+/**
+ * Which part of their day it is where they are. The columns use this to set
+ * their own ground colour, so the page shows the gap between the two of them
+ * rather than just stating it — cool at first light, neutral through the
+ * middle, warm at dusk, dim once it's late.
+ */
+export function dayPhaseIn(timezone: string, at: Date = new Date()): DayPhase {
+  const { hour } = partsIn(timezone, at)
+  if (hour < 5) return "late"
+  if (hour < 9) return "dawn"
+  if (hour < 17) return "day"
+  if (hour < 22) return "dusk"
+  return "late"
+}

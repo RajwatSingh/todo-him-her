@@ -1,8 +1,6 @@
 import { motion } from "motion/react"
 import { CloudOff } from "lucide-react"
 
-import { ShimmeringText } from "@/components/shimmering-text"
-
 export type FooterProps = {
   /** the little line of encouragement for today */
   note: string
@@ -17,44 +15,42 @@ export type FooterProps = {
  */
 export function OurFooter({ note, mode, error }: FooterProps) {
   return (
-    <footer className="relative z-10 flex flex-col items-center gap-4 pt-2 pb-3 text-center">
-      <ShimmeringText
-        text={note}
-        duration={3.2}
-        className="font-display text-[0.82rem] font-light [--color:var(--muted-foreground)] [--shimmering-color:var(--a-accent)]"
-      />
+    <footer className="relative z-10 flex flex-col items-center gap-5 pt-2 pb-3 text-center">
+      <p className="font-display text-[0.85rem] font-light text-muted-foreground italic">
+        {note}
+      </p>
 
       <motion.div
         initial={{ opacity: 0, y: 6 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8, delay: 0.15 }}
-        className="flex flex-col items-center gap-2"
+        className="flex flex-col items-center gap-2.5"
       >
         {/* "for" set between two hairlines, like a dedication page */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <span className="h-px w-12 bg-gradient-to-r from-transparent to-border sm:w-16" />
-          <span className="text-[0.6rem] tracking-[0.22em] text-muted-foreground/70 uppercase">
+          <span className="font-display text-[0.72rem] text-muted-foreground italic">
             for
           </span>
           <span className="h-px w-12 bg-gradient-to-l from-transparent to-border sm:w-16" />
         </div>
 
-        <p className="flex items-center gap-2 font-display text-[1.15rem] leading-none font-light tracking-tight sm:text-[1.3rem]">
+        <p className="flex items-baseline gap-2 font-display text-[1.2rem] leading-none font-light tracking-tight sm:text-[1.35rem]">
           <span style={{ color: "var(--b-accent)" }}>aanya</span>
-          <span className="text-[0.85em] text-muted-foreground/55 italic">
+          <span className="text-[0.8em] text-muted-foreground/50 italic">
             &amp;
           </span>
           <span style={{ color: "var(--a-accent)" }}>rajwat</span>
         </p>
 
-        <p className="text-[0.66rem] tracking-wide text-muted-foreground/65">
-          two time zones · one list
+        <p className="text-[0.68rem] text-muted-foreground">
+          two time zones, one list
         </p>
       </motion.div>
 
       {mode === "local" ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/60 px-2.5 py-1 text-[0.65rem] text-muted-foreground ring-1 ring-black/5">
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-card px-2.5 py-1 text-[0.65rem] text-muted-foreground ring-1 ring-border">
           <CloudOff className="size-3" />
           saved on this device only — not syncing yet
         </span>
