@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react"
 import { motion } from "motion/react"
+import { DayPhoto } from "@/components/day-photo"
 import { DaySwitcher } from "@/components/day-switcher"
 import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
 import { PersonColumn } from "@/components/person-column"
 import { TimeDials } from "@/components/time-dials"
 import { useOurDays } from "@/lib/store"
-import { offsetBetween, resolveSleep } from "@/lib/time"
+import { localDay, longDateIn, offsetBetween, resolveSleep } from "@/lib/time"
 import { PEOPLE } from "@/lib/types"
 import { useNow } from "@/lib/use-now"
 
@@ -50,6 +51,12 @@ export default function App() {
     if (bSleep) return `${profiles.b.name} is asleep while ${profiles.a.name} is up`
     return `both awake at once, ${gap.label.replace(" ahead", " apart").replace(" behind", " apart")}`
   }, [gap.label, now, profiles])
+
+  // The picture is shared, so it is keyed to one neutral calendar rather
+  // than to either person's local date — otherwise the two of them would be
+  // looking at different photos for the 9.5 hours their dates disagree.
+  const photoDay = localDay("UTC", dayOffset, now)
+  const photoCaption = longDateIn("UTC", dayOffset, now)
 
   const note = NOTES[Math.floor(Date.now() / 86_400_000) % NOTES.length]
   const totalDone = columns.a.done + columns.b.done
@@ -116,6 +123,8 @@ export default function App() {
           />
         </motion.div>
       </div>
+
+      <DayPhoto day={photoDay} caption={photoCaption} />
 
       <OurFooter
         note={note}
