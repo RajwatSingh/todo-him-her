@@ -14,6 +14,11 @@ they're asleep.
 - **Their own "today"** — the day switcher moves both columns by one day, but
   resolves against each person's own calendar, so "tomorrow" means tomorrow
   where they are
+- **Goodnight** — the clock is only ever a guess, so either of you can tap
+  *goodnight* (or *good morning*) to say it outright. The tap outranks the
+  clock until the clock next crosses midnight or 8am, at which point it
+  retires itself — so nobody shows as asleep all day for forgetting to tap
+  back
 
 The header writes out **love**, then **माया** — the Nepali word for the same
 thing.
@@ -68,6 +73,10 @@ footer.
 4. `cp .env.example .env` and paste both values in.
 5. Restart `npm run dev`. The footer badge disappears — you're syncing.
 
+`schema.sql` is safe to run again later: it adds anything new (the
+`sleep_override` columns behind the goodnight switch, say) without touching
+rows you already have.
+
 Changes now appear on the other person's screen within a second or so, with no
 refresh, because the app subscribes to Postgres changes on both tables.
 
@@ -82,15 +91,33 @@ swap the policies in `schema.sql` for Supabase Auth with per-user rules.
 
 ## Deploying
 
+The Vercel project is connected to this repository, so a push is a deploy:
+
+| push to                | gets you                       |
+| ---------------------- | ------------------------------ |
+| `master`               | a production deploy            |
+| any other branch, a PR | a preview deploy on its own URL |
+
+To deploy by hand instead — or to set the project up from scratch:
+
 ```bash
 npm i -g vercel      # if you don't have it
 vercel               # first run links the project
 vercel --prod
 ```
 
-Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under the project's
-**Settings → Environment Variables** in the Vercel dashboard, then redeploy so
-the build picks them up.
+Both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` must exist in the Vercel
+project for Production, Preview and Development:
+
+```bash
+vercel env add VITE_SUPABASE_URL production      # repeat per variable/environment
+vercel env ls                                    # check what's there
+```
+
+Vite inlines `VITE_*` values **at build time**, not at runtime, so a variable
+added after a build has no effect until the next one. If the deployed site
+still shows the "not syncing yet" badge, that is nearly always the reason —
+add the variables, then redeploy.
 
 ## Layout
 
