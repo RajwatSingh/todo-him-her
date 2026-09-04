@@ -42,7 +42,9 @@ export function TimeDials({
 
 const CENTER = 100
 const R_FACE = 96
+const R_TRACK = 88
 const R_INNER = 76
+const R_TURNED = 46
 
 /** A point on the dial: θ measured clockwise from the top, in degrees. */
 function at(theta: number, r: number) {
@@ -78,14 +80,29 @@ function Dial({
       stroke={tone}
       strokeLinecap="round"
     >
-      <circle cx={CENTER} cy={CENTER} r={R_FACE} strokeWidth={0.5} strokeOpacity={0.16} />
-      <circle cx={CENTER} cy={CENTER} r={R_INNER} strokeWidth={0.4} strokeOpacity={0.08} />
+      {/* the face: rim, minute track, and a turned centre — a dial drawn
+          the way a dial is drawn, rather than one lonely circle */}
+      <circle cx={CENTER} cy={CENTER} r={R_FACE} strokeWidth={0.7} strokeOpacity={0.3} />
+      <circle cx={CENTER} cy={CENTER} r={R_TRACK} strokeWidth={0.4} strokeOpacity={0.14} />
+      <circle cx={CENTER} cy={CENTER} r={R_INNER} strokeWidth={0.5} strokeOpacity={0.18} />
+
+      {/* a turned centre, the way a watch dial is finished */}
+      {[0, 1, 2, 3, 4].map((i) => (
+        <circle
+          key={`t${i}`}
+          cx={CENTER}
+          cy={CENTER}
+          r={R_TURNED - i * 9}
+          strokeWidth={0.35}
+          strokeOpacity={0.1}
+        />
+      ))}
 
       {/* one tick an hour; the quarters — midnight, six, noon, six — run longer */}
       {Array.from({ length: 24 }, (_, i) => {
         const theta = (i / 24) * 360 + 180
         const quarter = i % 6 === 0
-        const [x1, y1] = at(theta, quarter ? R_INNER : R_FACE - 7)
+        const [x1, y1] = at(theta, quarter ? R_INNER : R_TRACK)
         const [x2, y2] = at(theta, R_FACE)
         return (
           <line
@@ -94,9 +111,17 @@ function Dial({
             y1={y1}
             x2={x2}
             y2={y2}
-            strokeWidth={quarter ? 0.7 : 0.45}
-            strokeOpacity={quarter ? 0.18 : 0.1}
+            strokeWidth={quarter ? 1 : 0.5}
+            strokeOpacity={quarter ? 0.32 : 0.17}
           />
+        )
+      })}
+
+      {/* the four cardinal hours get a filled marker on the rim */}
+      {[0, 6, 12, 18].map((h) => {
+        const [x, y] = at((h / 24) * 360 + 180, R_FACE)
+        return (
+          <circle key={`q${h}`} cx={x} cy={y} r={1.5} fill={tone} fillOpacity={0.3} stroke="none" />
         )
       })}
 
@@ -107,10 +132,10 @@ function Dial({
           x2={hx}
           y2={hy}
           strokeWidth={0.9}
-          strokeOpacity={0.28}
+          strokeOpacity={0.42}
         />
-        <circle cx={hx} cy={hy} r={2.4} fill={tone} fillOpacity={0.45} stroke="none" />
-        <circle cx={CENTER} cy={CENTER} r={1.6} fill={tone} fillOpacity={0.3} stroke="none" />
+        <circle cx={hx} cy={hy} r={2.4} fill={tone} fillOpacity={0.6} stroke="none" />
+        <circle cx={CENTER} cy={CENTER} r={2} fill={tone} fillOpacity={0.4} stroke="none" />
       </g>
     </svg>
   )

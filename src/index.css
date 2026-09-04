@@ -13,7 +13,7 @@
   --radius: 0.85rem;
 
   /* page */
-  --background: oklch(0.976 0.003 250);
+  --background: oklch(0.949 0.006 252);
   --foreground: oklch(0.255 0.018 255);
 
   /* surfaces */
@@ -37,23 +37,23 @@
   --destructive: oklch(0.52 0.11 28);
   --destructive-foreground: oklch(0.99 0.002 250);
 
-  --border: oklch(0.895 0.005 255);
+  --border: oklch(0.885 0.006 255);
   --input: oklch(0.915 0.005 255);
-  --ring: oklch(0.55 0.075 78);
+  --ring: oklch(0.52 0.078 77);
 
   /* the two people ------------------------------------------------------- */
   /* One is on the warm side of the day, the other on the cool side. That is
      the whole distinction — no pastels, no hue that means "his" or "hers". */
 
   /* column a — antique brass */
-  --a-accent: oklch(0.55 0.075 78);
-  --a-soft: oklch(0.55 0.075 78 / 26%);
-  --a-glow: oklch(0.55 0.075 78 / 18%);
+  --a-accent: oklch(0.52 0.078 77);
+  --a-soft: oklch(0.52 0.078 77 / 30%);
+  --a-glow: oklch(0.52 0.078 77 / 20%);
 
   /* column b — slate teal */
   --b-accent: oklch(0.5 0.058 205);
-  --b-soft: oklch(0.5 0.058 205 / 26%);
-  --b-glow: oklch(0.5 0.058 205 / 18%);
+  --b-soft: oklch(0.5 0.058 205 / 30%);
+  --b-glow: oklch(0.5 0.058 205 / 20%);
 
   /* the ground under a column, by the hour where that person is ---------- */
   --ground-dawn: oklch(0.987 0.011 240);
@@ -125,13 +125,18 @@
     background-image:
       radial-gradient(
         70rem 50rem at 4% -10%,
-        oklch(0.9 0.035 78 / 26%),
+        oklch(0.93 0.04 78 / 42%),
         transparent 58%
       ),
       radial-gradient(
         70rem 50rem at 100% 2%,
-        oklch(0.88 0.03 210 / 24%),
+        oklch(0.92 0.035 210 / 38%),
         transparent 56%
+      ),
+      radial-gradient(
+        120rem 90rem at 50% 42%,
+        oklch(1 0 0 / 55%),
+        transparent 62%
       );
     background-attachment: fixed;
   }
@@ -143,12 +148,12 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.2;
+    opacity: 0.28;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
   }
 
   ::selection {
-    background: oklch(0.55 0.075 78 / 22%);
+    background: oklch(0.52 0.078 77 / 22%);
   }
 
   .twemoji {
