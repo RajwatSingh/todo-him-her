@@ -33,13 +33,30 @@ export const QUOTES: readonly Quote[] = [
   { text: "It is only the first step that is difficult.", author: "Marquise du Deffand" },
   { text: "You may encounter many defeats, but you must not be defeated.", author: "Maya Angelou" },
   { text: "Perseverance is a great element of success.", author: "Henry Wadsworth Longfellow" },
+  { text: "Great works are performed not by strength but by perseverance.", author: "Samuel Johnson" },
+  { text: "All things are difficult before they are easy.", author: "Thomas Fuller" },
+  { text: "The drop hollows the stone, not by force but by falling often.", author: "Ovid" },
+  { text: "Slow and steady wins the race.", author: "Aesop" },
+  { text: "He conquers who endures.", author: "Persius" },
+  { text: "Nothing is impossible to a willing heart.", author: "John Heywood" },
+  { text: "Genius is one percent inspiration and ninety-nine percent perspiration.", author: "Thomas Edison" },
+  { text: "I know several thousand things that won't work.", author: "Thomas Edison" },
+
+  // beginnings, and the size of a first step
+  { text: "He who has begun is half done.", author: "Horace" },
+  { text: "The beginning is the most important part of the work.", author: "Plato" },
+  { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
 
   // patience, and going at your own pace
   { text: "Adopt the pace of nature: her secret is patience.", author: "Ralph Waldo Emerson" },
   { text: "Patience and time do more than strength or passion.", author: "Jean de La Fontaine" },
   { text: "Have patience with all things, but chiefly have patience with yourself.", author: "Francis de Sales" },
+  { text: "Patience is the companion of wisdom.", author: "Augustine of Hippo" },
+  { text: "Time is the wisest counsellor of all.", author: "Pericles" },
   { text: "Rivers know this: there is no hurry. We shall get there some day.", author: "A. A. Milne" },
   { text: "The reward of a thing well done is having done it.", author: "Ralph Waldo Emerson" },
+  { text: "Finish each day and be done with it. You have done what you could.", author: "Ralph Waldo Emerson" },
+  { text: "Write it on your heart that every day is the best day in the year.", author: "Ralph Waldo Emerson" },
 
   // steadiness when things are hard
   { text: "You have power over your mind — not outside events. Realise this, and you will find strength.", author: "Marcus Aurelius" },
@@ -49,16 +66,28 @@ export const QUOTES: readonly Quote[] = [
   { text: "When we are no longer able to change a situation, we are challenged to change ourselves.", author: "Viktor Frankl" },
   { text: "Nothing in life is to be feared, it is only to be understood.", author: "Marie Curie" },
   { text: "Do the best you can until you know better. Then when you know better, do better.", author: "Maya Angelou" },
-  { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+  { text: "In the depth of winter, I finally learned that within me there lay an invincible summer.", author: "Albert Camus" },
+  { text: "Come what come may, time and the hour runs through the roughest day.", author: "William Shakespeare" },
 
-  // hope, distance, and the two of them
+  // hope
   { text: "We must accept finite disappointment, but never lose infinite hope.", author: "Martin Luther King Jr." },
   { text: "Hope is the thing with feathers that perches in the soul.", author: "Emily Dickinson" },
   { text: "Tomorrow is always fresh, with no mistakes in it yet.", author: "L. M. Montgomery" },
   { text: "We are all in the gutter, but some of us are looking at the stars.", author: "Oscar Wilde" },
+  { text: "Even the darkest night will end and the sun will rise.", author: "Victor Hugo" },
+  { text: "Once you choose hope, anything's possible.", author: "Christopher Reeve" },
+
+  // distance, and the two of them
   { text: "The heart has its reasons of which reason knows nothing.", author: "Blaise Pascal" },
   { text: "Absence is to love what wind is to fire: it extinguishes the small and kindles the great.", author: "Bussy-Rabutin" },
+  { text: "Absence sharpens love, presence strengthens it.", author: "Thomas Fuller" },
+  { text: "Journeys end in lovers meeting.", author: "William Shakespeare" },
+  { text: "The course of true love never did run smooth.", author: "William Shakespeare" },
   { text: "Not all those who wander are lost.", author: "J. R. R. Tolkien" },
+
+  // kindness, including toward yourself
+  { text: "Be kind, for everyone you meet is fighting a hard battle.", author: "Ian Maclaren" },
+  { text: "There is no charm equal to tenderness of heart.", author: "Jane Austen" },
 ] as const
 
 export const LAST_SHOWN_KEY = "our-days:last-quote"
