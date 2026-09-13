@@ -1,9 +1,11 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { motion } from "motion/react"
 import { DaySwitcher } from "@/components/day-switcher"
 import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
 import { PersonColumn } from "@/components/person-column"
+import { Pomodoro } from "@/components/pomodoro"
+import { TabSwitcher, type TabId } from "@/components/tab-switcher"
 import { TimeDials } from "@/components/time-dials"
 import { useOurDays } from "@/lib/store"
 import { offsetBetween, resolveSleep } from "@/lib/time"
@@ -20,7 +22,49 @@ const NOTES = [
   "proud of you both",
 ]
 
+const TAB_KEY = "our-days:tab"
+
 export default function App() {
+  const [tab, setTab] = useState<TabId>(() => {
+    try {
+      return localStorage.getItem(TAB_KEY) === "focus" ? "focus" : "days"
+    } catch {
+      return "days"
+    }
+  })
+  const [chrome, setChrome] = useState(true)
+
+  const openTab = useCallback((next: TabId) => {
+    setTab(next)
+    setChrome(true)
+    try {
+      localStorage.setItem(TAB_KEY, next)
+    } catch {
+      // private mode; it just won't reopen where you left off
+    }
+  }, [])
+
+  // The focus tab paints its own night over the whole viewport; tell the
+  // browser chrome about it too so the notch and the URL bar come along.
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]')
+    meta?.setAttribute("content", tab === "focus" ? "#1b1830" : "#eff1f4")
+  }, [tab])
+
+  return (
+    <>
+      <TabSwitcher
+        value={tab}
+        onChange={openTab}
+        tone={tab === "focus" ? "light" : "ink"}
+        hidden={tab === "focus" && !chrome}
+      />
+      {tab === "focus" ? <Pomodoro onChromeChange={setChrome} /> : <Days />}
+    </>
+  )
+}
+
+function Days() {
   const [dayOffset, setDayOffset] = useState(0)
   const now = useNow()
 
@@ -56,7 +100,7 @@ export default function App() {
   const totalAll = columns.a.total + columns.b.total
 
   return (
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pb-10 sm:px-6">
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-10 pb-10 sm:px-6">
       <TimeDials a={profiles.a} b={profiles.b} now={now} />
 
       <HelloHeader subtitle={subtitle} />

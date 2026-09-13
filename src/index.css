@@ -188,6 +188,43 @@
   }
 }
 
+/* the two slow colour fields behind the focus timer. They are wider than the
+   viewport on every side, so however far they wander no edge comes into view. */
+@keyframes focus-drift-a {
+  0%,
+  100% {
+    transform: translate3d(-4%, 3%, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(7%, -5%, 0) scale(1.28);
+  }
+}
+
+@keyframes focus-drift-b {
+  0%,
+  100% {
+    transform: translate3d(5%, -4%, 0) scale(1.22);
+  }
+  50% {
+    transform: translate3d(-6%, 6%, 0) scale(1.04);
+  }
+}
+
+.focus-drift-a {
+  animation: focus-drift-a 74s ease-in-out infinite;
+  will-change: transform;
+}
+
+.focus-drift-b {
+  animation: focus-drift-b 97s ease-in-out infinite;
+  will-change: transform;
+}
+
+.focus-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
 /* soft twinkle for the sleeping starfield */
 @keyframes twinkle {
   0%,
@@ -208,5 +245,13 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* The focus sky is meant to be left running for half an hour at a time, so
+     it settles into one still frame rather than snapping to the last one. */
+  .focus-drift-a,
+  .focus-drift-b {
+    animation: none !important;
+    transform: none !important;
   }
 }
