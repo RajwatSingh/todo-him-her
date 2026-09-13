@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { motion } from "motion/react"
 import { DaySwitcher } from "@/components/day-switcher"
 import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
 import { PersonColumn } from "@/components/person-column"
 import { Pomodoro } from "@/components/pomodoro"
+import { Sky, lightFor } from "@/components/sky"
 import { TabSwitcher, type TabId } from "@/components/tab-switcher"
 import { TimeDials } from "@/components/time-dials"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useOurDays } from "@/lib/store"
-import { offsetBetween, resolveSleep } from "@/lib/time"
+import { offsetBetween, partsIn, resolveSleep } from "@/lib/time"
 import { PEOPLE } from "@/lib/types"
 import { useNow } from "@/lib/use-now"
 
@@ -34,8 +36,8 @@ export default function App() {
   })
   const [chrome, setChrome] = useState(true)
 
-  const openTab = useCallback((next: TabId) => {
-    setTab(next)
+  const openTab = useCallback((next: string) => {
+    setTab(next as TabId)
     setChrome(true)
     try {
       localStorage.setItem(TAB_KEY, next)
@@ -44,27 +46,27 @@ export default function App() {
     }
   }, [])
 
-  // The focus tab paints its own night over the whole viewport; tell the
-  // browser chrome about it too so the notch and the URL bar come along.
-  useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]')
-    meta?.setAttribute("content", tab === "focus" ? "#1b1830" : "#eff1f4")
-  }, [tab])
-
   return (
-    <>
-      <TabSwitcher
-        value={tab}
-        onChange={openTab}
-        tone={tab === "focus" ? "light" : "ink"}
-        hidden={tab === "focus" && !chrome}
-      />
-      {tab === "focus" ? <Pomodoro onChromeChange={setChrome} /> : <Days />}
-    </>
+    <Tabs value={tab} onValueChange={openTab} className="gap-0">
+      <TabSwitcher value={tab} hidden={tab === "focus" && !chrome} />
+
+      {/* Both panels stay mounted: the timer has to keep counting while the
+          list is up, and coming back to a block that had quietly reset itself
+          would make the whole tab untrustworthy. Each one is told whether it
+          is the one on screen, so only the visible tab puts a sky up — they
+          are fixed, full-page layers, and there is only ever one sky. */}
+      <TabsContent value="days" forceMount hidden={tab !== "days"}>
+        <Days active={tab === "days"} />
+      </TabsContent>
+
+      <TabsContent value="focus" forceMount hidden={tab !== "focus"}>
+        <Pomodoro active={tab === "focus"} onChromeChange={setChrome} />
+      </TabsContent>
+    </Tabs>
   )
 }
 
-function Days() {
+function Days({ active }: { active: boolean }) {
   const [dayOffset, setDayOffset] = useState(0)
   const now = useNow()
 
@@ -99,9 +101,26 @@ function Days() {
   const totalDone = columns.a.done + columns.b.done
   const totalAll = columns.a.total + columns.b.total
 
+  // Their two lights, each sitting at the hour on their own clock: high and
+  // bright at noon where they are, below the bottom edge in the middle of
+  // their night. Whoever is in daylight lights their own side of the page.
+  const lights = useMemo(() => {
+    const a = partsIn(profiles.a.timezone, now)
+    const b = partsIn(profiles.b.timezone, now)
+    return [
+      lightFor(a.hour, a.minute, 0.22, "warm"),
+      lightFor(b.hour, b.minute, 0.78, "cool"),
+    ]
+  }, [now, profiles.a.timezone, profiles.b.timezone])
+
   return (
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-10 pb-10 sm:px-6">
-      <TimeDials a={profiles.a} b={profiles.b} now={now} />
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-16 pb-10 sm:px-6">
+      {active ? (
+        <>
+          <Sky variant="day" lights={lights} />
+          <TimeDials a={profiles.a} b={profiles.b} now={now} />
+        </>
+      ) : null}
 
       <HelloHeader subtitle={subtitle} />
 

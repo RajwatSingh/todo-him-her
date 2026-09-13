@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from "motion/react"
 import { Coffee, MoonStar, Plus, Sun, Sunrise } from "lucide-react"
 
 import { NightSky } from "@/components/night-sky"
+import { ScrollFadeEffect } from "@/components/scroll-fade-effect"
 import { TodoItem } from "@/components/todo-item"
 import { Twemoji } from "@/components/twemoji"
+import { haptic } from "@/lib/haptic"
 import { guessIcon } from "@/lib/icons"
 import {
   clockIn,
@@ -75,11 +77,15 @@ export function PersonColumn({
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 240, damping: 28 }}
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-xl",
-        "border border-border bg-card",
-        "shadow-[0_1px_2px_rgba(20,26,38,0.04)]"
+        "relative flex flex-col overflow-hidden rounded-2xl",
+        "border border-white/10 backdrop-blur-xl",
+        "shadow-[0_24px_60px_-24px_rgb(0_0_0/0.6)]",
+        // whose column this is, said in light rather than in a label: the
+        // pane carries a hairline of their own colour along its top edge
+        "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px",
+        "before:bg-[linear-gradient(to_right,transparent,var(--tone),transparent)]"
       )}
-      style={{ backgroundColor: tint }}
+      style={{ backgroundColor: tint, ["--tone" as string]: tone }}
     >
       {/* ---------------------------------------------------------------- */}
       {/* header — turns into a night scene while they're asleep            */}
@@ -95,7 +101,7 @@ export function PersonColumn({
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(160deg, var(--night) 0%, var(--night-soft) 100%)",
+                  "linear-gradient(165deg, var(--night) 0%, oklch(0.19 0.05 275) 100%)",
               }}
             >
               <NightSky seed={profile.id} className="absolute inset-0" />
@@ -135,9 +141,9 @@ export function PersonColumn({
                 aria-label="name"
                 size={Math.max(profile.name.length, 3)}
                 className={cn(
-                  "min-w-0 max-w-[9rem] bg-transparent font-display text-[1.6rem] leading-none font-light tracking-tight",
+                  "min-w-0 max-w-[9rem] bg-transparent font-display text-[1.75rem] leading-none tracking-tight",
                   "outline-none transition-colors",
-                  sleep.asleep ? "text-white/95" : "text-foreground"
+                  sleep.asleep ? "text-white/70" : "text-foreground"
                 )}
               />
             </div>
@@ -145,8 +151,8 @@ export function PersonColumn({
             <div className="text-right">
               <div
                 className={cn(
-                  "font-display text-lg leading-none tabular-nums transition-colors",
-                  sleep.asleep ? "text-white/90" : "text-foreground/85"
+                  "font-display tnum text-xl leading-none transition-colors",
+                  sleep.asleep ? "text-white/65" : "text-foreground/90"
                 )}
               >
                 {time}
@@ -154,7 +160,7 @@ export function PersonColumn({
               <div
                 className={cn(
                   "mt-1 text-[0.68rem] transition-colors",
-                  sleep.asleep ? "text-white/55" : "text-muted-foreground"
+                  sleep.asleep ? "text-white/40" : "text-muted-foreground"
                 )}
               >
                 {profile.location}
@@ -170,8 +176,8 @@ export function PersonColumn({
                 "inline-flex items-center gap-1.5 rounded-md px-2 py-1",
                 "text-[0.7rem] font-medium",
                 sleep.asleep
-                  ? "bg-white/10 text-white/90 ring-1 ring-white/15"
-                  : "bg-background/70 text-foreground/75 ring-1 ring-border"
+                  ? "bg-white/6 text-white/65 ring-1 ring-white/10"
+                  : "bg-white/8 text-foreground/85 ring-1 ring-white/12"
               )}
             >
               {sleep.asleep ? (
@@ -203,7 +209,7 @@ export function PersonColumn({
             <span
               className={cn(
                 "text-[0.7rem] transition-colors",
-                sleep.asleep ? "text-white/50" : "text-muted-foreground"
+                sleep.asleep ? "text-white/38" : "text-muted-foreground"
               )}
             >
               {dateLabel}
@@ -224,8 +230,8 @@ export function PersonColumn({
                 "ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1",
                 "text-[0.68rem] font-medium transition-colors",
                 sleep.asleep
-                  ? "text-white/65 ring-1 ring-white/15 hover:bg-white/12 hover:text-white"
-                  : "text-muted-foreground ring-1 ring-border hover:bg-background/80 hover:text-foreground"
+                  ? "text-white/50 ring-1 ring-white/12 hover:bg-white/10 hover:text-white/90"
+                  : "text-muted-foreground ring-1 ring-white/12 hover:bg-white/8 hover:text-foreground"
               )}
             >
               {sleep.asleep ? (
@@ -248,7 +254,7 @@ export function PersonColumn({
               <span
                 className={cn(
                   "text-[0.7rem]",
-                  sleep.asleep ? "text-white/60" : "text-muted-foreground"
+                  sleep.asleep ? "text-white/45" : "text-muted-foreground"
                 )}
               >
                 {total === 0
@@ -264,7 +270,7 @@ export function PersonColumn({
                   className={cn(
                     "text-[0.66rem] underline-offset-2 transition-colors hover:underline",
                     sleep.asleep
-                      ? "text-white/45 hover:text-white/80"
+                      ? "text-white/35 hover:text-white/70"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -276,7 +282,7 @@ export function PersonColumn({
             <div
               className={cn(
                 "h-[3px] w-full overflow-hidden rounded-full",
-                sleep.asleep ? "bg-white/12" : "bg-foreground/8"
+                sleep.asleep ? "bg-white/10" : "bg-white/12"
               )}
             >
               <motion.div
@@ -297,9 +303,9 @@ export function PersonColumn({
       <div className="px-4 pt-3">
         <div
           className={cn(
-            "flex items-center gap-2 rounded-lg bg-background/70 px-3 py-2",
-            "ring-1 ring-border transition-colors",
-            "focus-within:ring-[1.5px] focus-within:ring-[var(--tone)]"
+            "flex items-center gap-2 rounded-xl bg-white/6 px-3 py-2.5",
+            "ring-1 ring-white/12 transition-colors",
+            "focus-within:bg-white/10 focus-within:ring-[1.5px] focus-within:ring-[var(--tone)]"
           )}
           style={{ ["--tone" as string]: tone }}
         >
@@ -328,7 +334,7 @@ export function PersonColumn({
                 exit={{ opacity: 0, scale: 0.7 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={submit}
-                className="rounded-md px-2.5 py-1 text-[0.7rem] font-medium text-white"
+                className="rounded-lg px-2.5 py-1 text-[0.7rem] font-medium text-[oklch(0.18_0.04_285)]"
                 style={{ background: tone }}
               >
                 add
@@ -341,10 +347,15 @@ export function PersonColumn({
       {/* ---------------------------------------------------------------- */}
       {/* list                                                             */}
       {/* ---------------------------------------------------------------- */}
-      <div className="min-h-[9rem] flex-1 px-2.5 pt-2 pb-4">
-        {tree.length === 0 ? (
+      {tree.length === 0 ? (
+        <div className="min-h-[9rem] flex-1 px-2.5 pt-2 pb-4">
           <EmptyState asleep={sleep.asleep} name={profile.name} />
-        ) : (
+        </div>
+      ) : (
+        // A long day shouldn't end in a hard crop. The list dissolves into
+        // the pane at whichever end there is still more to scroll to, so the
+        // column keeps its edges however much is on it.
+        <ScrollFadeEffect className="pretty-scroll max-h-[26rem] min-h-[9rem] flex-1 px-2.5 pt-2 pb-4">
           <ul className="space-y-0.5">
             <AnimatePresence initial={false}>
               {tree.map((node) => (
@@ -354,7 +365,10 @@ export function PersonColumn({
                   depth={0}
                   tone={tone}
                   glow={glow}
-                  onToggle={onToggle}
+                  onToggle={(id) => {
+                    haptic(8)
+                    onToggle(id)
+                  }}
                   onPatch={onPatch}
                   onRemove={onRemove}
                   onAddChild={(parentId, text) =>
@@ -364,8 +378,8 @@ export function PersonColumn({
               ))}
             </AnimatePresence>
           </ul>
-        )}
-      </div>
+        </ScrollFadeEffect>
+      )}
     </motion.section>
   )
 }

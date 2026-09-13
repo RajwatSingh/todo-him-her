@@ -384,3 +384,28 @@ export function writeLastShown(index: number): void {
     // a quote that cannot be remembered is still a quote
   }
 }
+
+/**
+ * A shuffled hand of quotes for one sitting.
+ *
+ * The focus timer turns a quote over every few minutes, so drawing each one
+ * at random would land the same line twice in an afternoon. Dealing from a
+ * shuffled deck instead means nothing repeats until the hand is spent — at
+ * three minutes a card, a hand of this size outlasts any session anyone is
+ * going to sit through.
+ *
+ * Pure for the same reason `pickQuote` is: it gets called from a `useState`
+ * initialiser, which React may run more than once for a single render.
+ */
+export function dealQuotes(count = 32, random: () => number = Math.random): Quote[] {
+  const deck = QUOTES.slice()
+  const n = Math.min(count, deck.length)
+
+  // Fisher–Yates, stopped once the hand is dealt rather than run to the end.
+  for (let i = 0; i < n; i++) {
+    const j = i + Math.floor(random() * (deck.length - i))
+    ;[deck[i], deck[j]] = [deck[j], deck[i]]
+  }
+
+  return deck.slice(0, n)
+}

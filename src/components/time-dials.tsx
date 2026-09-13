@@ -22,7 +22,10 @@ export function TimeDials({
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      // These were pigment on paper. Against a lit night the same strokes
+      // read many times louder, and the sky is now saying most of what they
+      // used to say — so they drop back to an etching behind the glass.
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-[0.28]"
     >
       <Dial
         profile={a}

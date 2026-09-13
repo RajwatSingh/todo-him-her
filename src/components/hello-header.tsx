@@ -25,7 +25,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
               transition={{ duration: 0.55, ease: "easeIn" }}
             >
               <LoveEffect
-                className="h-11 text-[var(--a-accent)] sm:h-14"
+                className="h-11 text-[var(--a-accent)] opacity-[0.45] sm:h-14"
                 onAnimationComplete={() => {
                   // let it sit a moment before handing over to माया
                   setTimeout(() => setStep(1), 1000)
@@ -39,7 +39,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <MayaEffect className="h-11 text-[var(--b-accent)] sm:h-14" />
+              <MayaEffect className="h-11 text-[var(--b-accent)] opacity-[0.45] sm:h-14" />
             </motion.div>
           )}
         </AnimatePresence>

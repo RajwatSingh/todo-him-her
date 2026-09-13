@@ -12,62 +12,69 @@
 :root {
   --radius: 0.85rem;
 
-  /* page */
-  --background: oklch(0.949 0.006 252);
-  --foreground: oklch(0.255 0.018 255);
+  /* page — one night, from its floor to the surfaces that float on it */
+  --void: oklch(0.155 0.035 285);
+  --background: oklch(0.205 0.042 285);
+  --foreground: oklch(0.965 0.006 285);
 
-  /* surfaces */
-  --card: oklch(0.995 0.002 250);
-  --card-foreground: oklch(0.255 0.018 255);
-  --popover: oklch(0.995 0.002 250);
-  --popover-foreground: oklch(0.255 0.018 255);
+  /* surfaces. Every one of these is translucent: a column is a pane of
+     glass over the sky, not a card laid on top of it, so the light behind
+     it goes on showing through. */
+  --card: oklch(0.28 0.036 283 / 52%);
+  --card-foreground: oklch(0.965 0.006 285);
+  --popover: oklch(0.24 0.036 284 / 94%);
+  --popover-foreground: oklch(0.965 0.006 285);
 
-  --primary: oklch(0.36 0.028 255);
-  --primary-foreground: oklch(0.99 0.002 250);
+  --primary: oklch(0.93 0.01 285);
+  --primary-foreground: oklch(0.18 0.038 285);
 
-  --secondary: oklch(0.955 0.004 250);
-  --secondary-foreground: oklch(0.38 0.02 255);
+  --secondary: oklch(1 0 0 / 8%);
+  --secondary-foreground: oklch(0.94 0.008 285);
 
-  --muted: oklch(0.955 0.004 250);
-  --muted-foreground: oklch(0.515 0.015 255);
+  --muted: oklch(1 0 0 / 6%);
+  --muted-foreground: oklch(0.735 0.018 285);
 
-  --accent: oklch(0.945 0.006 250);
-  --accent-foreground: oklch(0.34 0.022 255);
+  --accent: oklch(1 0 0 / 10%);
+  --accent-foreground: oklch(0.96 0.006 285);
 
-  --destructive: oklch(0.52 0.11 28);
-  --destructive-foreground: oklch(0.99 0.002 250);
+  --destructive: oklch(0.64 0.15 25);
+  --destructive-foreground: oklch(0.99 0.002 285);
 
-  --border: oklch(0.885 0.006 255);
-  --input: oklch(0.915 0.005 255);
-  --ring: oklch(0.52 0.078 77);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.76 0.13 68);
 
   /* the two people ------------------------------------------------------- */
-  /* One is on the warm side of the day, the other on the cool side. That is
-     the whole distinction — no pastels, no hue that means "his" or "hers". */
+  /* Still the only colour that means anything: one of them is the warm
+     light in the sky, the other the cool one. Lifted off the old ink
+     values because a pigment that read on paper disappears against night. */
 
-  /* column a — antique brass */
-  --a-accent: oklch(0.52 0.078 77);
-  --a-soft: oklch(0.52 0.078 77 / 30%);
-  --a-glow: oklch(0.52 0.078 77 / 20%);
+  /* column a — brass lamplight */
+  --a-accent: oklch(0.76 0.13 68);
+  --a-soft: oklch(0.76 0.13 68 / 34%);
+  --a-glow: oklch(0.76 0.13 68 / 22%);
 
-  /* column b — slate teal */
-  --b-accent: oklch(0.5 0.058 205);
-  --b-soft: oklch(0.5 0.058 205 / 30%);
-  --b-glow: oklch(0.5 0.058 205 / 20%);
+  /* column b — teal moonlight */
+  --b-accent: oklch(0.74 0.09 202);
+  --b-soft: oklch(0.74 0.09 202 / 34%);
+  --b-glow: oklch(0.74 0.09 202 / 22%);
 
   /* the ground under a column, by the hour where that person is ---------- */
-  --ground-dawn: oklch(0.987 0.011 240);
-  --ground-day: oklch(0.997 0.001 250);
-  --ground-dusk: oklch(0.986 0.019 78);
-  --ground-late: oklch(0.981 0.013 265);
+  /* Night now, so these run from "their sky has started to lift" to "it is
+     the middle of their night" rather than between four shades of paper. */
+  --ground-dawn: oklch(0.255 0.045 268 / 46%);
+  --ground-day: oklch(0.295 0.032 278 / 46%);
+  --ground-dusk: oklch(0.265 0.05 44 / 46%);
+  --ground-late: oklch(0.225 0.045 288 / 52%);
 
-  /* night — while someone is asleep */
-  --night: oklch(0.235 0.028 258);
-  --night-soft: oklch(0.315 0.032 255);
-  --done: oklch(0.55 0.06 155);
+  /* while someone is asleep their column goes quiet rather than dark — the
+     whole page is dark now, so sleep is told by stillness, not by colour */
+  --night: oklch(0.185 0.042 288);
+  --night-soft: oklch(0.235 0.04 282);
+  --done: oklch(0.72 0.11 158);
 
-  --font-display: "Spectral", ui-serif, Georgia, serif;
-  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -98,6 +105,7 @@
   --color-night: var(--night);
   --color-night-soft: var(--night-soft);
   --color-done: var(--done);
+  --color-void: var(--void);
 
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
@@ -120,40 +128,44 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     min-height: 100dvh;
-    /* One faint warm-to-cool traverse across the page: his side, her side.
-       Low enough that it reads as light rather than as colour. */
+    /* The floor of the shared sky. Both tabs paint their own weather over
+       this, so the ground never changes when you switch between them —
+       only what is in it does. */
+    background-color: var(--void);
     background-image:
       radial-gradient(
-        70rem 50rem at 4% -10%,
-        oklch(0.93 0.04 78 / 42%),
-        transparent 58%
-      ),
-      radial-gradient(
-        70rem 50rem at 100% 2%,
-        oklch(0.92 0.035 210 / 38%),
-        transparent 56%
-      ),
-      radial-gradient(
-        120rem 90rem at 50% 42%,
-        oklch(1 0 0 / 55%),
+        62rem 48rem at 6% 0%,
+        oklch(0.42 0.055 52 / 32%),
         transparent 62%
+      ),
+      radial-gradient(
+        62rem 48rem at 96% 4%,
+        oklch(0.36 0.045 222 / 34%),
+        transparent 60%
+      ),
+      linear-gradient(
+        to bottom,
+        oklch(0.175 0.04 288) 0%,
+        oklch(0.215 0.045 285) 52%,
+        oklch(0.185 0.042 292) 100%
       );
     background-attachment: fixed;
   }
 
-  /* fine grain so a flat paper isn't a flat screen */
+  /* fine grain so a flat night isn't a flat screen */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.28;
+    opacity: 0.14;
+    mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
   }
 
   ::selection {
-    background: oklch(0.52 0.078 77 / 22%);
+    background: oklch(0.76 0.13 68 / 26%);
   }
 
   .twemoji {
@@ -163,12 +175,43 @@
     margin: 0 0.05em 0 0.1em;
     vertical-align: -0.1em;
   }
+
+@keyframes show-top-mask {
+  to {
+    --top-mask-height: var(--mask-height);
+    }
+  }
+
+@keyframes hide-bottom-mask {
+  to {
+    --bottom-mask-height: 0px;
+    }
+  }
+
+@keyframes show-left-mask {
+  to {
+    --left-mask-width: var(--mask-width);
+    }
+  }
+
+@keyframes hide-right-mask {
+  to {
+    --right-mask-width: 0px;
+    }
+  }
 }
 
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
-    font-feature-settings: "onum" 1;
+    font-feature-settings: "lnum" 1;
+  }
+
+  /* the clock, the two local times, any figure meant to be read as a
+     measurement rather than as prose — held to one width so digits
+     changing never nudge what sits beside them */
+  .tnum {
+    font-variant-numeric: tabular-nums lining-nums;
   }
 
   /* scrollbars that stay out of the way */
@@ -188,36 +231,36 @@
   }
 }
 
-/* the two slow colour fields behind the focus timer. They are wider than the
-   viewport on every side, so however far they wander no edge comes into view. */
-@keyframes focus-drift-a {
+/* the two aurora ribbons. Transform only, so the blur behind them is
+   rasterised once and then just moved around by the compositor. */
+@keyframes sky-ribbon-a {
   0%,
   100% {
-    transform: translate3d(-4%, 3%, 0) scale(1.05);
+    transform: translate3d(-4%, 2%, 0) scaleY(1);
   }
   50% {
-    transform: translate3d(7%, -5%, 0) scale(1.28);
+    transform: translate3d(6%, -3%, 0) scaleY(1.35);
   }
 }
 
-@keyframes focus-drift-b {
+@keyframes sky-ribbon-b {
   0%,
   100% {
-    transform: translate3d(5%, -4%, 0) scale(1.22);
+    transform: translate3d(5%, -2%, 0) scaleY(1.25);
   }
   50% {
-    transform: translate3d(-6%, 6%, 0) scale(1.04);
+    transform: translate3d(-6%, 3%, 0) scaleY(0.85);
   }
 }
 
-.focus-drift-a {
-  animation: focus-drift-a 74s ease-in-out infinite;
-  will-change: transform;
+.sky-ribbon-a {
+  animation: sky-ribbon-a 46s ease-in-out infinite;
+  transform-origin: 50% 50%;
 }
 
-.focus-drift-b {
-  animation: focus-drift-b 97s ease-in-out infinite;
-  will-change: transform;
+.sky-ribbon-b {
+  animation: sky-ribbon-b 63s ease-in-out infinite;
+  transform-origin: 50% 50%;
 }
 
 .focus-grain {
@@ -249,9 +292,61 @@
 
   /* The focus sky is meant to be left running for half an hour at a time, so
      it settles into one still frame rather than snapping to the last one. */
-  .focus-drift-a,
-  .focus-drift-b {
+  .sky-ribbon-a,
+  .sky-ribbon-b {
     animation: none !important;
     transform: none !important;
   }
+}
+  @property --top-mask-height {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 0px;
+}
+  @property --bottom-mask-height {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 64px;
+}
+  @property --left-mask-width {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 0px;
+}
+  @property --right-mask-width {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 64px;
+}
+
+@utility scroll-fade-effect-y {
+    --mask-height: 64px;
+    --mask-offset-top: 0px;
+    --mask-offset-bottom: 0px;
+    --scroll-buffer: 2rem;
+    mask-image: linear-gradient(to top, transparent, black 90%), linear-gradient(to bottom, transparent 0%, black 100%), linear-gradient(black, black);
+    mask-size: 100% var(--top-mask-height), 100% var(--bottom-mask-height), 100% 100%;
+    mask-repeat: no-repeat, no-repeat, no-repeat;
+    mask-position: 0 var(--mask-offset-top), 0 calc(100% - var(--mask-offset-bottom)), 0 0;
+    mask-composite: exclude;
+    animation-name: show-top-mask, hide-bottom-mask;
+    animation-timeline: scroll(self), scroll(self);
+    animation-range: 0 var(--scroll-buffer), calc(100% - var(--scroll-buffer)) 100%;
+    animation-fill-mode: both;
+}
+
+@utility scroll-fade-effect-x {
+    --mask-width: 64px;
+    --mask-offset-left: 0px;
+    --mask-offset-right: 0px;
+    --scroll-buffer: 2rem;
+    mask-image: linear-gradient(to left, transparent, black 90%), linear-gradient(to right, transparent 0%, black 100%), linear-gradient(black, black);
+    mask-size: var(--left-mask-width) 100%, var(--right-mask-width) 100%, 100% 100%;
+    mask-repeat: no-repeat, no-repeat, no-repeat;
+    mask-position: var(--mask-offset-left) 0, calc(100% - var(--mask-offset-right)) 0, 0 0;
+    mask-composite: exclude;
+    animation-name: show-left-mask, hide-right-mask;
+    animation-timeline: scroll(self inline), scroll(self inline);
+    animation-range: 0 var(--scroll-buffer), calc(100% - var(--scroll-buffer)) 100%;
+    animation-fill-mode: both;
 }
