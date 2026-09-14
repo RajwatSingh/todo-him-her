@@ -89,25 +89,30 @@ export function TodoItem({
     >
       <div
         className={cn(
-          "relative flex items-start gap-2 rounded-lg px-2 py-1.5 transition-colors",
-          "hover:bg-foreground/[0.035]"
+          "relative flex items-start gap-2.5 rounded-lg px-2 py-2 transition-colors",
+          "hover:bg-foreground/[0.045]"
         )}
       >
-        {/* expand / collapse */}
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          aria-label={expanded ? "collapse" : "expand"}
-          className={cn(
-            "mt-1 grid size-4 shrink-0 place-items-center rounded text-muted-foreground transition-transform",
-            hasChildren ? "opacity-60 hover:opacity-100" : "invisible",
-            expanded && "rotate-90"
-          )}
-        >
-          <ChevronRight className="size-3.5" strokeWidth={2} />
-        </button>
+        {/* Expand / collapse, hung in the gutter to the left of the row.
+            It used to sit in the flow as an invisible placeholder, which
+            indented every single task by the width of a control that most
+            of them never have. */}
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-label={expanded ? "collapse" : "expand"}
+            className={cn(
+              "absolute top-2 -left-3 grid size-4 place-items-center rounded",
+              "text-muted-foreground opacity-60 transition-transform hover:opacity-100",
+              expanded && "rotate-90"
+            )}
+          >
+            <ChevronRight className="size-3.5" strokeWidth={2} />
+          </button>
+        ) : null}
 
-        <div className="mt-0.5">
+        <div className="mt-px">
           <IconPicker
             value={node.icon}
             tone={tone}
@@ -120,7 +125,7 @@ export function TodoItem({
           onCheckedChange={() => onToggle(node.id)}
           aria-label={node.completed ? "mark as not done" : "mark as done"}
           className={cn(
-            "mt-1.5 size-[1rem] shrink-0 rounded-[5px] border-input bg-card",
+            "mt-[3px] size-[1rem] shrink-0 rounded-[5px] border-input bg-transparent",
             "transition-transform active:scale-90",
             "data-[state=checked]:border-transparent data-[state=checked]:text-white"
           )}
@@ -131,7 +136,7 @@ export function TodoItem({
           }
         />
 
-        <div className="min-w-0 flex-1 pt-0.5">
+        <div className="min-w-0 flex-1">
           {editingText ? (
             <input
               ref={textInputRef}
@@ -145,7 +150,7 @@ export function TodoItem({
                   setEditingText(false)
                 }
               }}
-              className="w-full bg-transparent text-[0.9rem] leading-snug outline-none"
+              className="w-full bg-transparent text-body leading-snug outline-none"
             />
           ) : (
             <button
@@ -155,7 +160,7 @@ export function TodoItem({
                 if (node.description || showNote) setShowNote((v) => !v)
               }}
               className={cn(
-                "block w-full text-left text-[0.9rem] leading-snug break-words transition-all",
+                "block w-full text-left text-body leading-snug break-words transition-all",
                 node.completed &&
                   "text-muted-foreground line-through decoration-[1.5px] opacity-60"
               )}
@@ -192,7 +197,7 @@ export function TodoItem({
                   }}
                   className={cn(
                     "mt-1 w-full resize-none overflow-hidden rounded-sm border-l py-0.5 pl-2.5",
-                    "bg-transparent font-display text-[0.8rem] leading-relaxed text-muted-foreground italic",
+                    "bg-transparent font-display text-small leading-relaxed text-muted-foreground italic",
                     "outline-none transition-colors placeholder:text-muted-foreground/45",
                     "focus:bg-foreground/[0.03]"
                   )}
@@ -204,7 +209,7 @@ export function TodoItem({
 
           {/* child count badge when collapsed */}
           {hasChildren && !expanded ? (
-            <div className="mt-1 text-[0.68rem] text-muted-foreground">
+            <div className="mt-1 text-fine text-muted-foreground">
               {doneChildren} of {node.children.length} sub-tasks done
             </div>
           ) : null}
@@ -300,7 +305,7 @@ export function TodoItem({
                         setAddingChild(false)
                       }
                     }}
-                    className="flex-1 bg-transparent text-[0.82rem] outline-none placeholder:text-muted-foreground/50"
+                    className="flex-1 bg-transparent text-small outline-none placeholder:text-muted-foreground/60"
                   />
                 </motion.div>
               ) : null}

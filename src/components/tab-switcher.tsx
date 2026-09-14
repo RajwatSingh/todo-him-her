@@ -16,8 +16,12 @@ const TABS: { id: TabId; label: string }[] = [
  *
  * Built on the Radix tabs primitive rather than a pair of buttons, so the
  * arrow keys move between them and the panel below is announced as theirs —
- * then dressed back down to a single quiet pill, with the marker sliding
- * between the two rather than blinking from one to the other.
+ * then dressed back down to one quiet segmented control.
+ *
+ * The selected pill fills its half of the track edge to edge: no inset, no
+ * gap, the two segments meeting on a single seam. That means the track
+ * carries no padding of its own and the pill has to match its radius exactly,
+ * or the corners part company where they overlap.
  */
 export function TabSwitcher({
   value,
@@ -29,16 +33,25 @@ export function TabSwitcher({
 }) {
   return (
     <motion.div
-      animate={{ opacity: hidden ? 0 : 1, y: hidden ? -8 : 0 }}
+      animate={{ opacity: hidden ? 0 : 1, y: hidden ? -10 : 0 }}
       transition={{ duration: 0.7 }}
       className={cn(
         "fixed top-4 left-1/2 z-50 -translate-x-1/2",
         hidden && "pointer-events-none"
       )}
     >
+      {/* The primitive's own `line` variant sets a square corner and a fixed
+          height through data-attribute rules, which outrank a plain utility —
+          so the overrides have to be stated on the same variant to land. A
+          track 1px taller than its pill is exactly what makes the pill look
+          like it is floating inside a box rather than filling it. */}
       <TabsList
         variant="line"
-        className="h-auto gap-0.5 rounded-full bg-white/6 p-1 ring-1 ring-white/12 backdrop-blur-md"
+        className={cn(
+          "control gap-0 overflow-hidden p-0",
+          "rounded-full data-[variant=line]:rounded-full",
+          "h-auto group-data-[orientation=horizontal]/tabs:h-auto"
+        )}
       >
         {TABS.map((tab) => {
           const active = tab.id === value
@@ -48,24 +61,23 @@ export function TabSwitcher({
               value={tab.id}
               onClick={() => haptic(8)}
               className={cn(
-                "relative h-auto rounded-full px-4 py-1.5 text-[0.78rem] font-normal",
-                "after:hidden", // the pill is the marker; the line variant's rule is not
-                // the primitive sets its own active colour, so the override
-                // has to be stated on the same variant to actually win
+                "relative h-auto min-w-[5.5rem] rounded-full px-5 py-[0.42rem]",
+                "text-small font-medium",
+                "after:hidden", // the pill is the marker, not the line rule
                 "data-[state=active]:bg-transparent",
                 active
-                  ? "text-[oklch(0.2_0.045_285)] data-[state=active]:text-[oklch(0.2_0.045_285)]"
-                  : "text-white/55 hover:text-white/85"
+                  ? "text-background data-[state=active]:text-background"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {active ? (
                 <motion.span
                   layoutId="tab-pill"
-                  transition={{ type: "spring", stiffness: 380, damping: 34 }}
-                  className="absolute inset-0 rounded-full bg-white/88"
+                  transition={{ type: "spring", stiffness: 420, damping: 36 }}
+                  className="absolute inset-0 rounded-full bg-foreground"
                 />
               ) : null}
-              <span className="relative">{tab.label}</span>
+              <span className="relative z-10">{tab.label}</span>
             </TabsTrigger>
           )
         })}

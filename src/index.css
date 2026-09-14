@@ -17,10 +17,9 @@
   --background: oklch(0.205 0.042 285);
   --foreground: oklch(0.965 0.006 285);
 
-  /* surfaces. Every one of these is translucent: a column is a pane of
-     glass over the sky, not a card laid on top of it, so the light behind
-     it goes on showing through. */
-  --card: oklch(0.28 0.036 283 / 52%);
+  /* There are no surfaces any more — nothing on this page sits in a box. The
+     few tokens left exist because shared primitives still ask for them. */
+  --card: transparent;
   --card-foreground: oklch(0.965 0.006 285);
   --popover: oklch(0.24 0.036 284 / 94%);
   --popover-foreground: oklch(0.965 0.006 285);
@@ -32,7 +31,7 @@
   --secondary-foreground: oklch(0.94 0.008 285);
 
   --muted: oklch(1 0 0 / 6%);
-  --muted-foreground: oklch(0.735 0.018 285);
+  --muted-foreground: oklch(0.76 0.018 288);
 
   --accent: oklch(1 0 0 / 10%);
   --accent-foreground: oklch(0.96 0.006 285);
@@ -51,21 +50,21 @@
 
   /* column a — brass lamplight */
   --a-accent: oklch(0.76 0.13 68);
-  --a-soft: oklch(0.76 0.13 68 / 34%);
+  --a-soft: oklch(0.76 0.13 68 / 46%);
   --a-glow: oklch(0.76 0.13 68 / 22%);
 
   /* column b — teal moonlight */
   --b-accent: oklch(0.74 0.09 202);
-  --b-soft: oklch(0.74 0.09 202 / 34%);
+  --b-soft: oklch(0.74 0.09 202 / 46%);
   --b-glow: oklch(0.74 0.09 202 / 22%);
 
-  /* the ground under a column, by the hour where that person is ---------- */
-  /* Night now, so these run from "their sky has started to lift" to "it is
-     the middle of their night" rather than between four shades of paper. */
-  --ground-dawn: oklch(0.255 0.045 268 / 46%);
-  --ground-day: oklch(0.295 0.032 278 / 46%);
-  --ground-dusk: oklch(0.265 0.05 44 / 46%);
-  --ground-late: oklch(0.225 0.045 288 / 52%);
+  /* The hour where each of them is, as the fill of their own card. Solid
+     enough to read against — these are cards, not panes — but a few points
+     short of opaque, so the light in the sky behind still reaches them. */
+  --ground-dawn: oklch(0.243 0.04 263 / 94%);
+  --ground-day: oklch(0.262 0.03 277 / 94%);
+  --ground-dusk: oklch(0.25 0.045 44 / 94%);
+  --ground-late: oklch(0.214 0.038 288 / 95%);
 
   /* while someone is asleep their column goes quiet rather than dark — the
      whole page is dark now, so sleep is told by stillness, not by colour */
@@ -73,8 +72,26 @@
   --night-soft: oklch(0.235 0.04 282);
   --done: oklch(0.72 0.11 158);
 
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  /* Newsreader is a serif drawn for reading on a screen rather than for
+     setting headlines, which is exactly why it is here: an optical-size axis
+     and a real italic, so it can be elegant at 116px and perfectly plain at
+     16px. Inter takes the interface labels, where the only job is to be
+     unambiguous and then get out of the way. */
+  --font-display: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans:
+    "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui,
+    sans-serif;
+
+  /* Seven sizes, and nothing in between them. The page had a dozen values
+     scattered between 0.65rem and 0.9rem, and that is what makes a layout
+     read as mushy however good the face is. */
+  --t-fine: 0.75rem; /* 12 — meta, captions */
+  --t-small: 0.875rem; /* 14 — labels, controls */
+  --t-body: 1rem; /* 16 — the things you actually read */
+  --t-lead: 1.3125rem; /* 21 — quotes, the subtitle */
+  --t-name: 1.75rem; /* 28 — a person's name */
+  --t-hour: 2.75rem; /* 44 — the hour where they are */
+  --t-clock: 7.25rem; /* 116 — the timer, the one loud thing */
 }
 
 @theme inline {
@@ -109,6 +126,14 @@
 
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
+
+  --text-fine: var(--t-fine);
+  --text-small: var(--t-small);
+  --text-body: var(--t-body);
+  --text-lead: var(--t-lead);
+  --text-name: var(--t-name);
+  --text-hour: var(--t-hour);
+  --text-clock: var(--t-clock);
 
   --radius-sm: calc(var(--radius) - 5px);
   --radius-md: calc(var(--radius) - 3px);
@@ -204,7 +229,14 @@
 @layer utilities {
   .font-display {
     font-family: var(--font-display);
-    font-feature-settings: "lnum" 1;
+    font-optical-sizing: auto;
+  }
+
+  /* Set large, Newsreader wants its display optical size — the contrast comes
+     up and the serifs sharpen — and the tracking pulled in to match. */
+  .font-display-xl {
+    font-variation-settings: "opsz" 72;
+    letter-spacing: -0.025em;
   }
 
   /* the clock, the two local times, any figure meant to be read as a
@@ -228,6 +260,25 @@
   }
   .pretty-scroll::-webkit-scrollbar-track {
     background: transparent;
+  }
+}
+
+@layer components {
+  /* The only surface treatment left on the page. A control is a solid patch
+     of the night, one shade up from the sky, with a hairline. No blur, no
+     gradient, no rim — the page has no materials in it any more, so a button
+     should not pretend to be made of one. */
+  .control {
+    background: oklch(0.28 0.03 285 / 72%);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 10%);
+    transition:
+      background 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .control:hover {
+    background: oklch(0.34 0.032 285 / 82%);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 18%);
   }
 }
 

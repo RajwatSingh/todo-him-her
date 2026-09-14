@@ -47,7 +47,7 @@ export function IconPicker({
       <PopoverContent
         align="start"
         sideOffset={8}
-        className="w-[17.5rem] rounded-xl border-border bg-popover p-3 shadow-lg"
+        className="w-[17.5rem] rounded-2xl border-white/12 bg-[oklch(0.2_0.035_285)] p-3 shadow-[0_20px_50px_-20px_oklch(0.05_0.02_285/0.8)]"
       >
         <div className="max-h-72 space-y-3 overflow-y-auto pretty-scroll">
           {ICON_GROUPS.map((group) => (

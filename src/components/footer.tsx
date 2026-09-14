@@ -16,7 +16,7 @@ export type FooterProps = {
 export function OurFooter({ note, mode, error }: FooterProps) {
   return (
     <footer className="relative z-10 flex flex-col items-center gap-5 pt-2 pb-3 text-center">
-      <p className="font-display text-[0.85rem] font-light text-muted-foreground italic">
+      <p className="font-display text-lead text-muted-foreground italic">
         {note}
       </p>
 
@@ -30,27 +30,27 @@ export function OurFooter({ note, mode, error }: FooterProps) {
         {/* "for" set between two hairlines, like a dedication page */}
         <div className="flex items-center gap-3">
           <span className="h-px w-12 bg-gradient-to-r from-transparent to-border sm:w-16" />
-          <span className="font-display text-[0.72rem] text-muted-foreground italic">
+          <span className="font-display text-fine text-muted-foreground italic">
             for
           </span>
           <span className="h-px w-12 bg-gradient-to-l from-transparent to-border sm:w-16" />
         </div>
 
-        <p className="flex items-baseline gap-2 font-display text-[1.2rem] leading-none font-light tracking-tight sm:text-[1.35rem]">
+        <p className="font-display flex items-baseline gap-2 text-name leading-none">
           <span style={{ color: "var(--b-accent)" }}>aanya</span>
-          <span className="text-[0.8em] text-muted-foreground/50 italic">
+          <span className="text-[0.7em] text-muted-foreground/50">
             &amp;
           </span>
           <span style={{ color: "var(--a-accent)" }}>rajwat</span>
         </p>
 
-        <p className="text-[0.68rem] text-muted-foreground">
+        <p className="text-fine text-muted-foreground">
           two time zones, one list
         </p>
       </motion.div>
 
       {mode === "local" ? (
-        <span className="inline-flex items-center gap-1.5 rounded-md bg-card px-2.5 py-1 text-[0.65rem] text-muted-foreground ring-1 ring-border">
+        <span className="control inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-fine text-muted-foreground">
           <CloudOff className="size-3" />
           saved on this device only — not syncing yet
         </span>

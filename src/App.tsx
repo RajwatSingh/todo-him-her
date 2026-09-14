@@ -7,7 +7,6 @@ import { PersonColumn } from "@/components/person-column"
 import { Pomodoro } from "@/components/pomodoro"
 import { Sky, lightFor } from "@/components/sky"
 import { TabSwitcher, type TabId } from "@/components/tab-switcher"
-import { TimeDials } from "@/components/time-dials"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useOurDays } from "@/lib/store"
 import { offsetBetween, partsIn, resolveSleep } from "@/lib/time"
@@ -92,8 +91,10 @@ function Days({ active }: { active: boolean }) {
     const bSleep = resolveSleep(profiles.b, now).asleep
 
     if (aSleep && bSleep) return "you're both asleep. the list will wait."
-    if (aSleep) return `${profiles.a.name} is asleep while ${profiles.b.name} is up`
-    if (bSleep) return `${profiles.b.name} is asleep while ${profiles.a.name} is up`
+    if (aSleep)
+      return `${profiles.a.name} is asleep while ${profiles.b.name} is up`
+    if (bSleep)
+      return `${profiles.b.name} is asleep while ${profiles.a.name} is up`
     return `both awake at once, ${gap.label.replace(" ahead", " apart").replace(" behind", " apart")}`
   }, [gap.label, now, profiles])
 
@@ -115,12 +116,7 @@ function Days({ active }: { active: boolean }) {
 
   return (
     <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-16 pb-10 sm:px-6">
-      {active ? (
-        <>
-          <Sky variant="day" lights={lights} />
-          <TimeDials a={profiles.a} b={profiles.b} now={now} />
-        </>
-      ) : null}
+      {active ? <Sky variant="day" lights={lights} /> : null}
 
       <HelloHeader subtitle={subtitle} />
 
@@ -128,7 +124,7 @@ function Days({ active }: { active: boolean }) {
         <DaySwitcher value={dayOffset} onChange={setDayOffset} />
       </div>
 
-      <main className="relative z-10 grid grid-cols-1 items-start gap-4 md:grid-cols-2 md:gap-5">
+      <main className="relative z-10 grid grid-cols-1 items-start gap-5 md:grid-cols-2 md:gap-6">
         {PEOPLE.map((id) => (
           <PersonColumn
             key={id}

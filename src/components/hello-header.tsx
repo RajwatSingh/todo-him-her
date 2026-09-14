@@ -49,7 +49,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.2 }}
-        className="font-display text-[2.4rem] leading-none font-extralight tracking-tight text-foreground sm:text-[3rem]"
+        className="font-display font-display-xl text-[2.75rem] leading-none text-foreground sm:text-[3.4rem]"
       >
         our days
       </motion.h1>
@@ -58,7 +58,7 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.35 }}
-        className="max-w-md text-[0.78rem] text-muted-foreground"
+        className="max-w-md text-small text-muted-foreground"
       >
         {subtitle}
       </motion.p>
