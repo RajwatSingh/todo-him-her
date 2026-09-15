@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "motion/react"
 import { MoonStar, Plus, Sunrise } from "lucide-react"
 
 import { Figures } from "@/components/figures"
-import { ScrollFadeEffect } from "@/components/scroll-fade-effect"
 import { TodoItem } from "@/components/todo-item"
 import { Twemoji } from "@/components/twemoji"
 import { haptic } from "@/lib/haptic"
@@ -264,9 +263,9 @@ export function PersonColumn({
           <EmptyState asleep={sleep.asleep} name={profile.name} />
         </div>
       ) : (
-        // A long day shouldn't end in a hard crop; the list dissolves at
-        // whichever end there is still more to scroll toward.
-        <ScrollFadeEffect className="pretty-scroll relative z-10 max-h-[24rem] flex-1 px-3 pt-3 pb-4">
+        // A day is as long as it is. The card grows with the list and the page
+        // scrolls, so the last thing you added is never cropped out of sight.
+        <div className="relative z-10 flex-1 px-3 pt-3 pb-4">
           <ul className="space-y-0.5">
             <AnimatePresence initial={false}>
               {tree.map((node) => (
@@ -287,7 +286,7 @@ export function PersonColumn({
               ))}
             </AnimatePresence>
           </ul>
-        </ScrollFadeEffect>
+        </div>
       )}
     </motion.section>
   )
