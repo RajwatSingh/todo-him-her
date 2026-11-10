@@ -266,7 +266,7 @@ export function PersonColumn({
         // A day is as long as it is. The card grows with the list and the page
         // scrolls, so the last thing you added is never cropped out of sight.
         <div className="relative z-10 flex-1 px-3 pt-3 pb-4">
-          <ul className="space-y-0.5">
+          <ul className="space-y-1.5">
             <AnimatePresence initial={false}>
               {tree.map((node) => (
                 <TodoItem
