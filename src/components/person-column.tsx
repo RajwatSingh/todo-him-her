@@ -3,9 +3,10 @@ import { AnimatePresence, motion } from "motion/react"
 import { ArrowRight, MoonStar, Plus, Sunrise, X } from "lucide-react"
 
 import { Figures } from "@/components/figures"
-import { TodoItem } from "@/components/todo-item"
+import { TaskList } from "@/components/todo-item"
 import { Twemoji } from "@/components/twemoji"
 import { haptic } from "@/lib/haptic"
+import { TaskContext, type TaskActions } from "@/lib/task-context"
 import { guessIcon } from "@/lib/icons"
 import {
   clockIn,
@@ -36,6 +37,7 @@ export type PersonColumnProps = {
   /** unfinished top-level tasks left on their yesterday (0 unless on today) */
   leftovers: number
   onBringOver: () => void
+  onReorder: (ids: string[]) => void
 }
 
 /**
@@ -67,6 +69,7 @@ export function PersonColumn({
   onSetSleeping,
   leftovers,
   onBringOver,
+  onReorder,
 }: PersonColumnProps) {
   const [draft, setDraft] = useState("")
   const [carryHidden, hideCarry] = useCarryDismissed(profile.id, profile.timezone)
@@ -92,6 +95,19 @@ export function PersonColumn({
     : sleep.manual
       ? `still up, ${sinceLabel(sleep.minutesSinceTap)}`
       : "awake"
+
+  const actions: TaskActions = {
+    tone,
+    glow,
+    toggle: (id) => {
+      haptic(8)
+      onToggle(id)
+    },
+    patch: onPatch,
+    remove: onRemove,
+    addChild: (parentId, text) => onAdd(profile.id, text, parentId),
+    reorder: onReorder,
+  }
 
   const submit = () => {
     const text = draft.trim()
@@ -336,26 +352,9 @@ export function PersonColumn({
         // A day is as long as it is. The card grows with the list and the page
         // scrolls, so the last thing you added is never cropped out of sight.
         <div className="relative z-10 flex-1 px-3 pt-3 pb-4">
-          <ul className="space-y-1.5">
-            <AnimatePresence initial={false}>
-              {tree.map((node) => (
-                <TodoItem
-                  key={node.id}
-                  node={node}
-                  depth={0}
-                  tone={tone}
-                  glow={glow}
-                  onToggle={(id) => {
-                    haptic(8)
-                    onToggle(id)
-                  }}
-                  onPatch={onPatch}
-                  onRemove={onRemove}
-                  onAddChild={(parentId, text) => onAdd(profile.id, text, parentId)}
-                />
-              ))}
-            </AnimatePresence>
-          </ul>
+          <TaskContext.Provider value={actions}>
+            <TaskList nodes={tree} depth={0} />
+          </TaskContext.Provider>
         </div>
       )}
     </motion.section>

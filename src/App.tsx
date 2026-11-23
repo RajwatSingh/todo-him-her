@@ -90,6 +90,7 @@ function Days({ active }: { active: boolean }) {
     setSleeping,
     leftovers,
     bringOver,
+    reorder,
   } = useOurDays(dayOffset)
 
   const gap = offsetBetween(profiles.a.timezone, profiles.b.timezone, now)
@@ -180,6 +181,7 @@ function Days({ active }: { active: boolean }) {
             onSetSleeping={(asleep) => setSleeping(id, asleep)}
             leftovers={leftovers[id].length}
             onBringOver={() => bringOver(id)}
+            onReorder={reorder}
           />
         ))}
       </main>

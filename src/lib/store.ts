@@ -209,6 +209,25 @@ export function useOurDays(dayOffset: number) {
     [commit]
   )
 
+  /** One set of siblings in a new order: their positions become 0..n-1. */
+  const reorder = useCallback(
+    (ids: string[]) => {
+      const all = todosRef.current
+      const position = new Map(ids.map((id, i) => [id, i]))
+      const changed: Todo[] = []
+      const next = all.map((t) => {
+        const p = position.get(t.id)
+        if (p === undefined || p === t.position) return t
+        const moved = { ...t, position: p }
+        changed.push(moved)
+        return moved
+      })
+      if (changed.length === 0) return
+      void commit(next, () => backend.upsertTodos(changed))
+    },
+    [commit]
+  )
+
   /** Ticking a parent ticks everything nested under it — and unticking clears it. */
   const toggleTodo = useCallback(
     (id: string) => {
@@ -431,6 +450,7 @@ export function useOurDays(dayOffset: number) {
     setSleeping,
     leftovers,
     bringOver,
+    reorder,
     /** whether cheers, memories, notes, together and shared focus can be saved */
     v3: backend.kind === "local" || v3,
   }
