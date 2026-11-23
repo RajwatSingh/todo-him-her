@@ -8,6 +8,7 @@ import { PersonColumn } from "@/components/person-column"
 import { Pomodoro } from "@/components/pomodoro"
 import { Sky, lightFor } from "@/components/sky"
 import { TabSwitcher, type TabId } from "@/components/tab-switcher"
+import { Toaster } from "@/components/toaster"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useOurDays } from "@/lib/store"
 import { offsetBetween, partsIn, resolveSleep } from "@/lib/time"
@@ -63,6 +64,8 @@ export default function App() {
       <TabsContent value="focus" forceMount hidden={tab !== "focus"}>
         <Pomodoro active={tab === "focus"} onChromeChange={setChrome} />
       </TabsContent>
+
+      <Toaster />
     </Tabs>
   )
 }

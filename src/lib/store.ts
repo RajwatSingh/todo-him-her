@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { backend } from "@/lib/backend"
 import { guessIcon } from "@/lib/icons"
+import { clip, toast } from "@/lib/toast"
 import { localDay } from "@/lib/time"
 import {
   DEFAULT_PROFILES,
@@ -49,6 +50,24 @@ function withDescendants(all: Todo[], id: string): string[] {
   }
   return out
 }
+
+/** Parents before children, so a restore never inserts an orphan. */
+function parentsFirst(rows: Todo[]): Todo[] {
+  const ids = new Set(rows.map((r) => r.id))
+  const depth = new Map<string, number>()
+  const byId = new Map(rows.map((r) => [r.id, r]))
+  const depthOf = (r: Todo): number => {
+    const known = depth.get(r.id)
+    if (known !== undefined) return known
+    const parent = r.parent_id && ids.has(r.parent_id) ? byId.get(r.parent_id) : undefined
+    const d = parent ? depthOf(parent) + 1 : 0
+    depth.set(r.id, d)
+    return d
+  }
+  return [...rows].sort((x, y) => depthOf(x) - depthOf(y))
+}
+
+const UNDO_MS = 5000
 
 function newId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -210,16 +229,41 @@ export function useOurDays(dayOffset: number) {
     [commit]
   )
 
+  /**
+   * Put deleted rows back exactly as they were — same ids, parents, positions,
+   * notes, icons — so an undo is indistinguishable from never having deleted.
+   * The delete itself went out straight away (the other phone saw it go); this
+   * writes the rows back, parents first.
+   */
+  const restore = useCallback(
+    (rows: Todo[]) => {
+      const present = new Set(todosRef.current.map((t) => t.id))
+      const back = parentsFirst(rows.filter((r) => !present.has(r.id)))
+      if (back.length === 0) return
+      void commit([...todosRef.current, ...back], () => backend.upsertTodos(back))
+    },
+    [commit]
+  )
+
   const removeTodo = useCallback(
     (id: string) => {
       const all = todosRef.current
+      const target = all.find((t) => t.id === id)
       const doomed = new Set(withDescendants(all, id))
+      const snapshot = all.filter((t) => doomed.has(t.id))
       void commit(
         all.filter((t) => !doomed.has(t.id)),
         () => backend.deleteTodos([...doomed])
       )
+      if (target) {
+        toast({
+          message: `deleted ‘${clip(target.text)}’`,
+          action: { label: "undo", onClick: () => restore(snapshot) },
+          duration: UNDO_MS,
+        })
+      }
     },
-    [commit]
+    [commit, restore]
   )
 
   const clearCompleted = useCallback(
@@ -238,12 +282,18 @@ export function useOurDays(dayOffset: number) {
       }
       if (doomed.size === 0) return
 
+      const snapshot = all.filter((t) => doomed.has(t.id))
       void commit(
         all.filter((t) => !doomed.has(t.id)),
         () => backend.deleteTodos([...doomed])
       )
+      toast({
+        message: `cleared ${doomed.size}`,
+        action: { label: "undo", onClick: () => restore(snapshot) },
+        duration: UNDO_MS,
+      })
     },
-    [commit]
+    [commit, restore]
   )
 
   const saveProfile = useCallback((profile: Profile) => {
