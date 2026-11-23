@@ -46,6 +46,56 @@ create table if not exists public.todos (
 create index if not exists todos_owner_day_idx on public.todos (owner, day);
 create index if not exists todos_parent_idx    on public.todos (parent_id);
 
+-- v3: cheers, memories, the together list, notes, pings, shared focus -------
+-- Everything below is additive and safe to re-run. The app checks for these
+-- columns on start-up and keeps the new features switched off until they
+-- exist, so it is fine to deploy the code before running this.
+
+-- [{ "by": "a", "emoji": "💛", "at": "2026-…" }, …]
+alter table public.todos add column if not exists reactions   jsonb   not null default '[]'::jsonb;
+-- a finished task kept for the scrapbook
+alter table public.todos add column if not exists is_memory   boolean not null default false;
+alter table public.todos add column if not exists memory_note text    not null default '';
+-- 'personal' lives in its owner's column on its owner's day; 'together' is
+-- the shared, undated list. `owner` on a together task is whoever added it.
+alter table public.todos add column if not exists scope       text    not null default 'personal';
+
+do $$
+begin
+  alter table public.todos
+    add constraint todos_scope_check check (scope in ('personal', 'together'));
+exception when duplicate_object then null;
+end $$;
+
+create index if not exists todos_scope_idx  on public.todos (scope);
+create index if not exists todos_memory_idx on public.todos (is_memory) where is_memory;
+
+-- the one line each of you leaves on the other's card
+alter table public.profiles add column if not exists note_for_partner text not null default '';
+-- "thinking of you": when this person last sent one
+alter table public.profiles add column if not exists last_ping_at     timestamptz;
+-- the focus timer, so the other phone can see it and join in
+alter table public.profiles add column if not exists focus_ends_at    timestamptz;
+alter table public.profiles add column if not exists focus_duration   integer;
+alter table public.profiles add column if not exists focus_mode       text;
+alter table public.profiles add column if not exists started_by       text;
+
+do $$
+begin
+  alter table public.profiles
+    add constraint profiles_focus_mode_check
+    check (focus_mode is null or focus_mode in ('focus', 'short', 'long'));
+exception when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.profiles
+    add constraint profiles_started_by_check
+    check (started_by is null or started_by in ('a', 'b'));
+exception when duplicate_object then null;
+end $$;
+
 -- realtime ------------------------------------------------------------------
 -- this is what makes her checkbox tick on your screen without a refresh
 alter table public.todos    replica identity full;

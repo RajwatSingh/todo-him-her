@@ -1,6 +1,9 @@
 import { supabase } from "@/lib/supabase"
 import {
   DEFAULT_PROFILES,
+  PROFILE_V3_KEYS,
+  TODO_V3_KEYS,
+  normalizeTodo,
   type PersonId,
   type Profile,
   type Todo,
@@ -13,6 +16,12 @@ import {
  */
 export type Backend = {
   readonly kind: "local" | "cloud"
+  /**
+   * Whether the store can hold the v3 fields (cheers, memories, notes, the
+   * together list, shared focus). Always true locally; in the cloud it is
+   * true once `supabase/schema.sql` has been re-run.
+   */
+  supportsV3(): Promise<boolean>
   loadTodos(): Promise<Todo[]>
   upsertTodos(todos: Todo[]): Promise<void>
   deleteTodos(ids: string[]): Promise<void>
@@ -49,8 +58,12 @@ function writeJSON(key: string, value: unknown) {
 export const localBackend: Backend = {
   kind: "local",
 
+  async supportsV3() {
+    return true
+  },
+
   async loadTodos() {
-    return readJSON<Todo[]>(TODOS_KEY, [])
+    return readJSON<Todo[]>(TODOS_KEY, []).map(normalizeTodo)
   },
 
   async upsertTodos(todos) {
@@ -95,8 +108,34 @@ export const localBackend: Backend = {
 /* cloud                                                                      */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Asked once per page: do the v3 columns exist yet? A select naming a column
+ * that isn't there fails, which is the whole test — it reads nothing. Until
+ * the answer is yes, writes leave those fields out, so a database that hasn't
+ * been migrated keeps working exactly as before instead of rejecting saves.
+ */
+let v3: Promise<boolean> | null = null
+function probeV3() {
+  v3 ??= (async () => {
+    const [todos, profiles] = await Promise.all([
+      supabase!.from("todos").select(TODO_V3_KEYS.join(",")).limit(1),
+      supabase!.from("profiles").select(PROFILE_V3_KEYS.join(",")).limit(1),
+    ])
+    return !todos.error && !profiles.error
+  })().catch(() => false)
+  return v3
+}
+
+function strip<T extends object>(row: T, keys: readonly string[]): T {
+  const copy = { ...row } as Record<string, unknown>
+  for (const k of keys) delete copy[k]
+  return copy as T
+}
+
 export const cloudBackend: Backend = {
   kind: "cloud",
+
+  supportsV3: probeV3,
 
   async loadTodos() {
     const { data, error } = await supabase!
@@ -105,12 +144,15 @@ export const cloudBackend: Backend = {
       .order("position", { ascending: true })
 
     if (error) throw error
-    return (data ?? []) as Todo[]
+    return ((data ?? []) as Todo[]).map(normalizeTodo)
   },
 
   async upsertTodos(todos) {
     if (todos.length === 0) return
-    const { error } = await supabase!.from("todos").upsert(todos)
+    const rows = (await probeV3())
+      ? todos
+      : todos.map((t) => strip(t, TODO_V3_KEYS))
+    const { error } = await supabase!.from("todos").upsert(rows)
     if (error) throw error
   },
 
@@ -133,7 +175,8 @@ export const cloudBackend: Backend = {
   },
 
   async saveProfile(profile) {
-    const { error } = await supabase!.from("profiles").upsert(profile)
+    const row = (await probeV3()) ? profile : strip(profile, PROFILE_V3_KEYS)
+    const { error } = await supabase!.from("profiles").upsert(row)
     if (error) throw error
   },
 

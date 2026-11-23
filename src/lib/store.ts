@@ -5,8 +5,10 @@ import { guessIcon } from "@/lib/icons"
 import { localDay } from "@/lib/time"
 import {
   DEFAULT_PROFILES,
+  TODO_DEFAULTS,
   type PersonId,
   type Profile,
+  type Scope,
   type Todo,
   type TodoNode,
 } from "@/lib/types"
@@ -68,6 +70,19 @@ export function useOurDays(dayOffset: number) {
     useState<Record<PersonId, Profile>>(DEFAULT_PROFILES)
   const [status, setStatus] = useState<Status>("loading")
   const [error, setError] = useState<string | null>(null)
+  // Local storage always can; the cloud can once the v3 SQL has been run.
+  // Starts false so nothing v3 flashes up and then vanishes.
+  const [v3, setV3] = useState(false)
+
+  useEffect(() => {
+    let live = true
+    void backend.supportsV3().then((ok) => {
+      if (live) setV3(ok)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
 
   // Keeps optimistic writes from being clobbered by an in-flight refresh.
   const todosRef = useRef<Todo[]>([])
@@ -112,17 +127,33 @@ export function useOurDays(dayOffset: number) {
   )
 
   const addTodo = useCallback(
-    (owner: PersonId, text: string, parentId: string | null = null) => {
+    (
+      owner: PersonId,
+      text: string,
+      parentId: string | null = null,
+      scope: Scope = "personal"
+    ) => {
       const trimmed = text.trim()
       if (!trimmed) return
 
       const all = todosRef.current
-      const day = localDay(profiles[owner].timezone, dayOffset)
-      const siblings = all.filter(
-        (t) => t.owner === owner && t.day === day && t.parent_id === parentId
+      // A sub-task belongs wherever its parent does — same list, same day —
+      // whoever happens to be adding it.
+      const parent = parentId ? all.find((t) => t.id === parentId) : undefined
+      const inScope: Scope = parent?.scope ?? scope
+      const day = parent?.day ?? localDay(profiles[owner].timezone, dayOffset)
+      const siblings = all.filter((t) =>
+        inScope === "together"
+          ? t.scope === "together" && t.parent_id === parentId
+          : t.scope === "personal" &&
+            t.owner === owner &&
+            t.day === day &&
+            t.parent_id === parentId
       )
 
       const todo: Todo = {
+        ...TODO_DEFAULTS,
+        scope: inScope,
         id: newId(),
         owner,
         parent_id: parentId,
@@ -196,7 +227,12 @@ export function useOurDays(dayOffset: number) {
       const all = todosRef.current
       const doomed = new Set<string>()
       for (const t of all) {
-        if (t.owner === owner && t.day === day && t.completed) {
+        if (
+          t.scope === "personal" &&
+          t.owner === owner &&
+          t.day === day &&
+          t.completed
+        ) {
           for (const id of withDescendants(all, t.id)) doomed.add(id)
         }
       }
@@ -238,7 +274,9 @@ export function useOurDays(dayOffset: number) {
   const columns = useMemo(() => {
     const build = (owner: PersonId) => {
       const day = localDay(profiles[owner].timezone, dayOffset)
-      const mine = todos.filter((t) => t.owner === owner && t.day === day)
+      const mine = todos.filter(
+        (t) => t.scope === "personal" && t.owner === owner && t.day === day
+      )
       const tree = buildTree(mine)
       return {
         day,
@@ -263,5 +301,7 @@ export function useOurDays(dayOffset: number) {
     clearCompleted,
     saveProfile,
     setSleeping,
+    /** whether cheers, memories, notes, together and shared focus can be saved */
+    v3: backend.kind === "local" || v3,
   }
 }
