@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
-import { motion } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
+import { RotateCcw } from "lucide-react"
 import { DaySwitcher } from "@/components/day-switcher"
 import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
@@ -121,7 +122,30 @@ function Days({ active }: { active: boolean }) {
       <HelloHeader subtitle={subtitle} />
 
       <div className="pt-4 pb-5">
-        <DaySwitcher value={dayOffset} onChange={setDayOffset} />
+        {/* The reset pill hangs off the right of the switcher rather than
+            sitting in the row, so the switcher stays dead centre and doesn't
+            jump sideways every time you leave today or come back to it. */}
+        <div className="relative z-10 mx-auto w-fit">
+          <DaySwitcher value={dayOffset} onChange={setDayOffset} />
+          <AnimatePresence>
+            {dayOffset !== 0 ? (
+              <motion.button
+                key="today"
+                type="button"
+                onClick={() => setDayOffset(0)}
+                initial={{ opacity: 0, x: -6, scale: 0.94 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -6, scale: 0.94 }}
+                transition={{ type: "spring", stiffness: 420, damping: 30 }}
+                whileTap={{ scale: 0.95 }}
+                className="absolute top-1 left-full ml-2 inline-flex h-6 items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 text-xs font-medium whitespace-nowrap text-white/75 transition-colors outline-none hover:bg-white/[0.12] hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                <RotateCcw className="size-3" strokeWidth={2.2} />
+                today
+              </motion.button>
+            ) : null}
+          </AnimatePresence>
+        </div>
       </div>
 
       <main className="relative z-10 grid grid-cols-1 items-start gap-5 md:grid-cols-2 md:gap-6">
@@ -162,7 +186,7 @@ function Days({ active }: { active: boolean }) {
             }}
           />
           {totalAll > 0 ? (
-            <span className="text-fine whitespace-nowrap text-muted-foreground tnum">
+            <span className="text-fine whitespace-nowrap text-white/65 tnum">
               {totalDone} of {totalAll} done between you
             </span>
           ) : null}

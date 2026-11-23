@@ -16,7 +16,7 @@ export type FooterProps = {
 export function OurFooter({ note, mode, error }: FooterProps) {
   return (
     <footer className="relative z-10 flex flex-col items-center gap-5 pt-2 pb-3 text-center">
-      <p className="text-body text-muted-foreground">
+      <p className="text-body text-white/65">
         {note}
       </p>
 
@@ -30,7 +30,7 @@ export function OurFooter({ note, mode, error }: FooterProps) {
         {/* "for" set between two hairlines, like a dedication page */}
         <div className="flex items-center gap-3">
           <span className="h-px w-12 bg-gradient-to-r from-transparent to-border sm:w-16" />
-          <span className="text-fine tracking-wide text-muted-foreground">
+          <span className="text-fine tracking-wide text-white/65">
             for
           </span>
           <span className="h-px w-12 bg-gradient-to-l from-transparent to-border sm:w-16" />
@@ -44,7 +44,7 @@ export function OurFooter({ note, mode, error }: FooterProps) {
           <span style={{ color: "var(--a-accent)" }}>rajwat</span>
         </p>
 
-        <p className="text-fine text-muted-foreground">
+        <p className="text-fine text-white/65">
           two time zones, one list
         </p>
       </motion.div>

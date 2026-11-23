@@ -141,7 +141,7 @@ export function PersonColumn({
               className="min-w-0 max-w-[8rem] bg-transparent text-lead leading-none font-medium tracking-[-0.02em] text-foreground outline-none"
             />
           </div>
-          <span className="justify-self-end text-right text-fine text-muted-foreground">
+          <span className="justify-self-end text-right text-fine text-white/65">
             {profile.location}
           </span>
 
@@ -150,10 +150,10 @@ export function PersonColumn({
               <Figures>{clock}</Figures>
             </span>
             {suffix ? (
-              <span className="text-small text-muted-foreground">{suffix}</span>
+              <span className="text-small text-white/65">{suffix}</span>
             ) : null}
           </div>
-          <span className="justify-self-end text-right text-fine text-muted-foreground">
+          <span className="justify-self-end text-right text-fine text-white/65 tnum">
             {dateLabel}
           </span>
         </div>
@@ -163,7 +163,7 @@ export function PersonColumn({
         {/* how they are, and their own word about it — the clock is only
             ever a guess */}
         <div className="mt-3 flex items-center justify-between gap-3">
-          <span className="text-small text-muted-foreground">{condition}</span>
+          <span className="text-small text-white/65">{condition}</span>
           <button
             type="button"
             onClick={() => {
@@ -192,7 +192,7 @@ export function PersonColumn({
 
         {/* "clear done" belongs beside the count it changes */}
         <div className="mt-2 flex items-baseline justify-between gap-3">
-          <span className="text-small text-foreground/80">
+          <span className="text-small text-foreground/80 tnum">
             {total === 0
               ? "nothing planned yet"
               : done === total
@@ -203,7 +203,7 @@ export function PersonColumn({
             <button
               type="button"
               onClick={onClearCompleted}
-              className="text-fine text-muted-foreground underline-offset-4 transition-colors outline-none hover:text-foreground hover:underline focus-visible:text-foreground focus-visible:underline"
+              className="text-fine text-white/65 underline-offset-4 transition-colors outline-none hover:text-foreground hover:underline focus-visible:text-foreground focus-visible:underline"
             >
               clear done
             </button>
@@ -311,7 +311,7 @@ function sinceLabel(minutes: number) {
 
 function EmptyState({ asleep, name }: { asleep: boolean; name: string }) {
   return (
-    <p className="max-w-[30ch] text-small leading-relaxed text-muted-foreground">
+    <p className="max-w-[30ch] text-small leading-relaxed text-white/65">
       {asleep
         ? `${name} is asleep. the day hasn't started yet.`
         : "a blank day. add the first thing."}
