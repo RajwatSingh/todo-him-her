@@ -124,17 +124,15 @@ export function TogetherCard({
         </AnimatePresence>
       </label>
 
-      <div className="relative z-10 px-3 pt-3 pb-4">
-        {tree.length === 0 ? (
-          <p className="px-2 pt-1 pb-2 text-small leading-relaxed text-white/65">
-            nothing planned together yet — a call, a film, the next visit.
-          </p>
-        ) : (
+      {tree.length > 0 ? (
+        <div className="relative z-10 px-3 pt-3 pb-4">
           <TaskContext.Provider value={{ ...actions, tone: TONE, glow: GLOW }}>
             <TaskList nodes={tree} depth={0} />
           </TaskContext.Provider>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="pb-5" />
+      )}
     </motion.section>
   )
 }
