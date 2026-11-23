@@ -1,32 +1,25 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { RotateCcw } from "lucide-react"
 import { DaySwitcher } from "@/components/day-switcher"
 import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
 import { PersonColumn } from "@/components/person-column"
-import { Pomodoro } from "@/components/pomodoro"
+import { Pomodoro, type PomodoroSession } from "@/components/pomodoro"
 import { Sky, lightFor } from "@/components/sky"
 import { TabSwitcher, type TabId } from "@/components/tab-switcher"
 import { Toaster } from "@/components/toaster"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { useMe } from "@/lib/identity"
 import { useOurDays } from "@/lib/store"
 import { offsetBetween, partsIn, resolveSleep } from "@/lib/time"
-import { PEOPLE } from "@/lib/types"
+import { DEFAULT_PROFILES, PEOPLE, other, type PersonId } from "@/lib/types"
 import { useDailyIntro } from "@/lib/use-daily-intro"
 import { useNow } from "@/lib/use-now"
 
-const NOTES = [
-  "small steps still count",
-  "one day at a time",
-  "you're both doing fine",
-  "good things take time",
-  "be kind to yourself today",
-  "the distance is temporary",
-  "proud of you both",
-]
-
 const TAB_KEY = "our-days:tab"
+
+type Store = ReturnType<typeof useOurDays>
 
 export default function App() {
   const [tab, setTab] = useState<TabId>(() => {
@@ -48,6 +41,53 @@ export default function App() {
     }
   }, [])
 
+  // The list and who's holding the phone live up here, above both tabs,
+  // because the focus tab needs them too: its timer is mirrored onto this
+  // person's profile so the other phone can see it and join in.
+  const [dayOffset, setDayOffset] = useState(0)
+  const [me, setMe] = useMe(DEFAULT_PROFILES)
+  const store = useOurDays(dayOffset, me)
+  const { setFocus, profiles, v3, status } = store
+
+  // joining the other one's focus block: the timer is handed their end time
+  const [join, setJoin] = useState<{ endsAt: number; minutes: number; key: number } | null>(null)
+  const joinedFrom = useRef<PersonId | null>(null)
+
+  const onSession = useCallback(
+    (session: PomodoroSession) => {
+      if (!v3) return
+      if (!session) joinedFrom.current = null
+      setFocus(session ? { ...session, startedBy: joinedFrom.current ?? me } : null)
+    },
+    [me, setFocus, v3]
+  )
+
+  // A block this person already has running — started before a reload, or on
+  // their other device — is picked back up once, as soon as the list loads,
+  // so the card and the timer never disagree about whether they're focusing.
+  const resumed = useRef(false)
+  useEffect(() => {
+    if (resumed.current || status !== "ready" || !v3) return
+    resumed.current = true
+    const mine = profiles[me]
+    if (mine.focus_mode !== "focus" || !mine.focus_ends_at) return
+    const endsAt = Date.parse(mine.focus_ends_at)
+    if (endsAt <= Date.now()) return
+    joinedFrom.current = mine.started_by && mine.started_by !== me ? mine.started_by : null
+    setJoin({ endsAt, minutes: mine.focus_duration ?? 25, key: Date.now() })
+  }, [me, profiles, status, v3])
+
+  const joinPartner = useCallback(() => {
+    const them = profiles[other(me)]
+    if (!them.focus_ends_at) return
+    joinedFrom.current = them.started_by ?? them.id
+    setJoin({
+      endsAt: Date.parse(them.focus_ends_at),
+      minutes: them.focus_duration ?? 25,
+      key: Date.now(),
+    })
+  }, [me, profiles])
+
   return (
     <Tabs value={tab} onValueChange={openTab} className="gap-0">
       <TabSwitcher value={tab} hidden={tab === "focus" && !chrome} />
@@ -58,11 +98,24 @@ export default function App() {
           is the one on screen, so only the visible tab puts a sky up — they
           are fixed, full-page layers, and there is only ever one sky. */}
       <TabsContent value="days" forceMount hidden={tab !== "days"}>
-        <Days active={tab === "days"} />
+        <Days
+          active={tab === "days"}
+          store={store}
+          dayOffset={dayOffset}
+          setDayOffset={setDayOffset}
+          me={me}
+          setMe={setMe}
+          onJoin={joinPartner}
+        />
       </TabsContent>
 
       <TabsContent value="focus" forceMount hidden={tab !== "focus"}>
-        <Pomodoro active={tab === "focus"} onChromeChange={setChrome} />
+        <Pomodoro
+          active={tab === "focus"}
+          onChromeChange={setChrome}
+          onSession={onSession}
+          join={join}
+        />
       </TabsContent>
 
       <Toaster />
@@ -70,8 +123,23 @@ export default function App() {
   )
 }
 
-function Days({ active }: { active: boolean }) {
-  const [dayOffset, setDayOffset] = useState(0)
+function Days({
+  active,
+  store,
+  dayOffset,
+  setDayOffset,
+  me,
+  setMe,
+  onJoin,
+}: {
+  active: boolean
+  store: Store
+  dayOffset: number
+  setDayOffset: (n: number) => void
+  me: PersonId
+  setMe: (id: PersonId) => void
+  onJoin: () => void
+}) {
   const now = useNow()
   const intro = useDailyIntro()
 
@@ -81,6 +149,7 @@ function Days({ active }: { active: boolean }) {
     status,
     error,
     mode,
+    v3,
     addTodo,
     patchTodo,
     toggleTodo,
@@ -91,7 +160,10 @@ function Days({ active }: { active: boolean }) {
     leftovers,
     bringOver,
     reorder,
-  } = useOurDays(dayOffset)
+    toggleReaction,
+    setNoteForPartner,
+    ping,
+  } = store
 
   const gap = offsetBetween(profiles.a.timezone, profiles.b.timezone, now)
 
@@ -107,7 +179,6 @@ function Days({ active }: { active: boolean }) {
     return `both awake at once, ${gap.label.replace(" ahead", " apart").replace(" behind", " apart")}`
   }, [gap.label, now, profiles])
 
-  const note = NOTES[Math.floor(Date.now() / 86_400_000) % NOTES.length]
   const totalDone = columns.a.done + columns.b.done
   const totalAll = columns.a.total + columns.b.total
 
@@ -163,27 +234,41 @@ function Days({ active }: { active: boolean }) {
       </div>
 
       <main className="relative z-10 grid grid-cols-1 items-start gap-5 md:grid-cols-2 md:gap-6">
-        {PEOPLE.map((id) => (
-          <PersonColumn
-            key={id}
-            profile={profiles[id]}
-            tree={columns[id].tree}
-            total={columns[id].total}
-            done={columns[id].done}
-            dayOffset={dayOffset}
-            now={now}
-            onAdd={addTodo}
-            onToggle={toggleTodo}
-            onPatch={patchTodo}
-            onRemove={removeTodo}
-            onRename={(name) => saveProfile({ ...profiles[id], name })}
-            onClearCompleted={() => clearCompleted(id, columns[id].day)}
-            onSetSleeping={(asleep) => setSleeping(id, asleep)}
-            leftovers={leftovers[id].length}
-            onBringOver={() => bringOver(id)}
-            onReorder={reorder}
-          />
-        ))}
+        {PEOPLE.map((id) => {
+          const them = profiles[other(id)]
+          const mine = id === me
+          return (
+            <PersonColumn
+              key={id}
+              profile={profiles[id]}
+              tree={columns[id].tree}
+              total={columns[id].total}
+              done={columns[id].done}
+              dayOffset={dayOffset}
+              now={now}
+              onAdd={addTodo}
+              onToggle={toggleTodo}
+              onPatch={patchTodo}
+              onRemove={removeTodo}
+              onRename={(name) => saveProfile({ ...profiles[id], name })}
+              onClearCompleted={() => clearCompleted(id, columns[id].day)}
+              onSetSleeping={(asleep) => setSleeping(id, asleep)}
+              leftovers={leftovers[id].length}
+              onBringOver={() => bringOver(id)}
+              onReorder={reorder}
+              viewer={me}
+              v3={v3}
+              onCheer={toggleReaction}
+              note={them.note_for_partner}
+              noteAuthor={them.name}
+              onNoteChange={mine ? undefined : setNoteForPartner}
+              onPing={mine ? undefined : ping}
+              pingedAt={them.last_ping_at}
+              otherProfile={them}
+              onJoin={mine ? undefined : onJoin}
+            />
+          )
+        })}
       </main>
 
       {/* the seam between the two columns: one hairline, the shared count
@@ -218,9 +303,12 @@ function Days({ active }: { active: boolean }) {
       </div>
 
       <OurFooter
-        note={note}
         mode={mode}
         error={status === "error" ? error : null}
+        me={me}
+        profiles={profiles}
+        onSwitchMe={() => setMe(other(me))}
+        needsMigration={!v3 && mode === "cloud"}
       />
     </div>
   )

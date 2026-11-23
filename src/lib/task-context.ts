@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react"
 
-import type { Todo } from "@/lib/types"
+import type { PersonId, Todo } from "@/lib/types"
 
 /**
  * What every task row in one list can do, and the colours it's drawn in.
@@ -17,6 +17,12 @@ export type TaskActions = {
   addChild: (parentId: string, text: string) => void
   /** new order of one set of siblings, by id */
   reorder: (ids: string[]) => void
+  /** who is holding this phone — cheers go on the other one's tasks */
+  me: PersonId
+  /** whether the v3 fields (cheers, memories) can be saved */
+  v3: boolean
+  /** toggle this phone's cheer on a task */
+  cheer: (id: string) => void
 }
 
 export const TaskContext = createContext<TaskActions | null>(null)

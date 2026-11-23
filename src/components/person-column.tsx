@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react"
 import { ArrowRight, MoonStar, Plus, Sunrise, X } from "lucide-react"
 
 import { Figures } from "@/components/figures"
+import { FocusLine, NoteLine, PingGlow } from "@/components/partner-bits"
 import { TaskList } from "@/components/todo-item"
 import { Twemoji } from "@/components/twemoji"
 import { haptic } from "@/lib/haptic"
@@ -38,6 +39,24 @@ export type PersonColumnProps = {
   leftovers: number
   onBringOver: () => void
   onReorder: (ids: string[]) => void
+  /** who is holding this phone */
+  viewer: PersonId
+  /** whether cheers, notes, pings and shared focus can be saved */
+  v3: boolean
+  onCheer: (id: string) => void
+  /** the line the other one has left for this card's person */
+  note: string
+  noteAuthor: string
+  /** present on the other one's card: you write their note */
+  onNoteChange?: (text: string) => void
+  /** present on the other one's card: "thinking of you" */
+  onPing?: () => void
+  /** when the other one last sent this person "thinking of you" */
+  pingedAt: string | null
+  /** the other one's profile, for "focusing together" and "join" */
+  otherProfile: Profile
+  /** present on the other one's card */
+  onJoin?: () => void
 }
 
 /**
@@ -70,6 +89,16 @@ export function PersonColumn({
   leftovers,
   onBringOver,
   onReorder,
+  viewer,
+  v3,
+  onCheer,
+  note,
+  noteAuthor,
+  onNoteChange,
+  onPing,
+  pingedAt,
+  otherProfile,
+  onJoin,
 }: PersonColumnProps) {
   const [draft, setDraft] = useState("")
   const [carryHidden, hideCarry] = useCarryDismissed(profile.id, profile.timezone)
@@ -107,6 +136,12 @@ export function PersonColumn({
     remove: onRemove,
     addChild: (parentId, text) => onAdd(profile.id, text, parentId),
     reorder: onReorder,
+    me: viewer,
+    v3,
+    cheer: (id) => {
+      haptic(8)
+      onCheer(id)
+    },
   }
 
   const submit = () => {
@@ -134,6 +169,7 @@ export function PersonColumn({
         className="pointer-events-none absolute -top-14 -right-10 z-0 size-52 rounded-full opacity-80 blur-2xl"
         style={{ background: `radial-gradient(circle, ${glow} 0%, transparent 70%)` }}
       />
+      {v3 ? <PingGlow pingedAt={pingedAt} tone={tone} glow={glow} /> : null}
       {/* ------------------------------------------------------------------ */}
       {/* who, where, and what time it is where they are                     */}
       {/* ------------------------------------------------------------------ */}
@@ -218,6 +254,16 @@ export function PersonColumn({
           </button>
         </div>
 
+        {v3 ? (
+          <FocusLine
+            profile={profile}
+            otherProfile={otherProfile}
+            now={now}
+            tone={tone}
+            onJoin={onJoin}
+          />
+        ) : null}
+
         {/* "clear done" belongs beside the count it changes */}
         <div className="mt-2 flex items-baseline justify-between gap-3">
           <span className="text-small text-foreground/80 tnum">
@@ -249,6 +295,17 @@ export function PersonColumn({
             transition={{ type: "spring", stiffness: 180, damping: 26 }}
           />
         </div>
+
+        {v3 ? (
+          <NoteLine
+            note={note}
+            author={noteAuthor}
+            cardName={profile.name}
+            tone={tone}
+            onChange={onNoteChange}
+            onPing={onPing}
+          />
+        ) : null}
       </div>
 
       {/* yesterday's loose ends, offered back — once per day, dismissable */}

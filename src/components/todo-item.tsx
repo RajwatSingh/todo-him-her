@@ -7,7 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react"
 import { AnimatePresence, Reorder, motion, useDragControls } from "motion/react"
-import { AlignLeft, ChevronDown, Plus, Trash2 } from "lucide-react"
+import { AlignLeft, ChevronDown, Heart, Plus, Trash2 } from "lucide-react"
 
 import { IconPicker } from "@/components/icon-picker"
 import { TearTicket } from "@/components/tear-check"
@@ -112,7 +112,7 @@ function TodoItem({
   onDragEnd: () => void
   onMove: (delta: number) => void
 }) {
-  const { tone, glow, toggle, patch, remove, addChild } = useTasks()
+  const { tone, glow, toggle, patch, remove, addChild, me, v3, cheer } = useTasks()
 
   const [expanded, setExpanded] = useState(true)
   const [editingText, setEditingText] = useState(false)
@@ -299,6 +299,10 @@ function TodoItem({
               ) : null}
             </AnimatePresence>
           </div>
+
+          {v3 ? (
+            <Cheers node={node} me={me} tone={tone} line={line} onCheer={() => cheer(node.id)} />
+          ) : null}
 
           {/* row actions: hidden until the row is hovered or focused */}
           <div
@@ -516,6 +520,93 @@ function useLongPressLift({
   }
 
   return { controls, lifted, drop, ref, handlers }
+}
+
+/**
+ * Cheers. On the other one's task, a heart to tap — always showing once the
+ * task is torn off, since that's the moment worth cheering. On your own
+ * task, whatever they've sent you, as a little cluster of emoji.
+ */
+function Cheers({
+  node,
+  me,
+  tone,
+  line,
+  onCheer,
+}: {
+  node: TodoNode
+  me: string
+  tone: string
+  line: string
+  onCheer: () => void
+}) {
+  const fromThem = node.reactions.filter((r) => r.by !== me)
+  const mineOn = node.reactions.some((r) => r.by === me)
+  const theirs = node.owner !== me
+
+  const received =
+    fromThem.length > 0 ? (
+      <span
+        className="inline-flex items-center -space-x-0.5"
+        title={`${fromThem.length} cheer${fromThem.length > 1 ? "s" : ""}`}
+      >
+        {[...new Set(fromThem.map((r) => r.emoji))].slice(0, 3).map((e) => (
+          <motion.span
+            key={e}
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 15 }}
+          >
+            <Twemoji className="size-3.5">{e}</Twemoji>
+          </motion.span>
+        ))}
+      </span>
+    ) : null
+
+  if (!theirs) {
+    return received ? (
+      <div data-no-drag className={cn("flex shrink-0 items-center", line)}>
+        {received}
+      </div>
+    ) : null
+  }
+
+  return (
+    <div
+      data-no-drag
+      className={cn(
+        "flex shrink-0 items-center transition-opacity",
+        line,
+        node.completed || mineOn
+          ? "opacity-100"
+          : "opacity-0 group-hover/item:opacity-100 focus-within:opacity-100 max-sm:opacity-60"
+      )}
+    >
+      <motion.button
+        type="button"
+        onClick={onCheer}
+        whileTap={{ scale: 0.8 }}
+        aria-pressed={mineOn}
+        aria-label={mineOn ? "take back your cheer" : "cheer this on"}
+        title={mineOn ? "cheered" : "cheer"}
+        className="grid size-6 place-items-center rounded-md text-white/55 transition-colors hover:bg-white/[0.08] hover:text-foreground"
+      >
+        <motion.span
+          key={String(mineOn)}
+          initial={mineOn ? { scale: 0.5 } : false}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 520, damping: 12 }}
+          className="inline-flex"
+        >
+          <Heart
+            className="size-3.5"
+            strokeWidth={2.2}
+            style={mineOn ? { fill: tone, color: tone } : undefined}
+          />
+        </motion.span>
+      </motion.button>
+    </div>
+  )
 }
 
 function RowAction({

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { partnerActivity, type RecentWrites } from "@/lib/activity"
 import { backend } from "@/lib/backend"
 import { guessIcon } from "@/lib/icons"
 import { clip, toast } from "@/lib/toast"
@@ -7,6 +8,8 @@ import { localDay } from "@/lib/time"
 import {
   DEFAULT_PROFILES,
   TODO_DEFAULTS,
+  other,
+  type FocusMode,
   type PersonId,
   type Profile,
   type Scope,
@@ -83,7 +86,31 @@ function newId() {
 
 export type Status = "loading" | "ready" | "error"
 
-export function useOurDays(dayOffset: number) {
+/** A system notification, if they've allowed them and aren't looking. */
+function notify(title: string) {
+  try {
+    if (
+      typeof Notification !== "undefined" &&
+      Notification.permission === "granted" &&
+      document.visibilityState === "hidden"
+    ) {
+      new Notification(title, { tag: "our-days", silent: false })
+    }
+  } catch {
+    // some browsers only allow notifications from a service worker
+  }
+}
+
+export type FocusSession = {
+  mode: FocusMode
+  /** ms epoch */
+  endsAt: number
+  /** minutes */
+  minutes: number
+  startedBy: PersonId
+} | null
+
+export function useOurDays(dayOffset: number, me: PersonId) {
   const [todos, setTodos] = useState<Todo[]>([])
   const [profiles, setProfiles] =
     useState<Record<PersonId, Profile>>(DEFAULT_PROFILES)
@@ -110,12 +137,46 @@ export function useOurDays(dayOffset: number) {
   const profilesRef = useRef(profiles)
   profilesRef.current = profiles
 
+  const meRef = useRef(me)
+  meRef.current = me
+
+  /** what this device wrote lately, so it isn't announced back to itself */
+  const recentRef = useRef<RecentWrites>(new Map())
+  const markRecent = useCallback((keys: Iterable<string>) => {
+    const at = Date.now()
+    for (const k of keys) recentRef.current.set(k, at)
+  }, [])
+  const loadedRef = useRef(false)
+  const noteToastAt = useRef(0)
+
   const refresh = useCallback(async () => {
     try {
       const [nextTodos, nextProfiles] = await Promise.all([
         backend.loadTodos(),
         backend.loadProfiles(),
       ])
+
+      // what changed on the other phone since we last looked
+      if (loadedRef.current) {
+        for (const a of partnerActivity({
+          me: meRef.current,
+          prevTodos: todosRef.current,
+          nextTodos,
+          prevProfiles: profilesRef.current,
+          nextProfiles,
+          recent: recentRef.current,
+        })) {
+          // a note is saved as it's typed — announce it once, not per word
+          if (a.icon === "💌") {
+            if (Date.now() - noteToastAt.current < 60_000) continue
+            noteToastAt.current = Date.now()
+          }
+          toast({ message: a.message, icon: a.icon, duration: 4500 })
+          if (a.ping) notify(`💛 ${a.message}`)
+        }
+      }
+      loadedRef.current = true
+
       setTodos(nextTodos)
       setProfiles(nextProfiles)
       setStatus("ready")
@@ -134,6 +195,10 @@ export function useOurDays(dayOffset: number) {
   /** Optimistic local update, then persist; on failure, re-sync from source. */
   const commit = useCallback(
     async (next: Todo[], persist: () => Promise<void>) => {
+      const before = new Map(todosRef.current.map((t) => [t.id, t]))
+      const touched: string[] = []
+      for (const t of next) if (before.get(t.id) !== t) touched.push(t.id)
+      markRecent(touched)
       setTodos(next)
       try {
         await persist()
@@ -142,7 +207,7 @@ export function useOurDays(dayOffset: number) {
         void refresh()
       }
     },
-    [refresh]
+    [markRecent, refresh]
   )
 
   const addTodo = useCallback(
@@ -316,6 +381,7 @@ export function useOurDays(dayOffset: number) {
   )
 
   const saveProfile = useCallback((profile: Profile) => {
+    markRecent([`profile:${profile.id}`])
     setProfiles((prev) => ({ ...prev, [profile.id]: profile }))
     void backend.saveProfile(profile).catch(() => {
       /* name changes are cosmetic; don't interrupt for them */
@@ -333,11 +399,97 @@ export function useOurDays(dayOffset: number) {
       sleep_override: asleep ? "asleep" : "awake",
       sleep_override_at: new Date().toISOString(),
     }
+    markRecent([`profile:${id}`])
     setProfiles((prev) => ({ ...prev, [id]: next }))
     void backend.saveProfile(next).catch(() => {
       /* the light stays on locally; nothing worth interrupting the page for */
     })
-  }, [])
+  }, [markRecent])
+
+  const saveTimers = useRef<Record<string, number>>({})
+
+  /** Change some of one profile's fields, locally at once and then saved. */
+  const updateProfile = useCallback(
+    (id: PersonId, patch: Partial<Profile>, save: "now" | "soon" = "now") => {
+      const next: Profile = { ...profilesRef.current[id], ...patch }
+      profilesRef.current = { ...profilesRef.current, [id]: next }
+      markRecent([`profile:${id}`])
+      setProfiles((prev) => ({ ...prev, [id]: next }))
+      const write = () => {
+        markRecent([`profile:${id}`])
+        void backend
+          .saveProfile(profilesRef.current[id])
+          .catch((e) => setError(e instanceof Error ? e.message : "that didn't save"))
+      }
+      window.clearTimeout(saveTimers.current[id])
+      if (save === "now") write()
+      else saveTimers.current[id] = window.setTimeout(write, 600)
+    },
+    [markRecent]
+  )
+
+  /** Tap-to-cheer on someone else's task: toggles this person's emoji on it. */
+  const toggleReaction = useCallback(
+    (id: string, emoji = "💛") => {
+      const all = todosRef.current
+      const target = all.find((t) => t.id === id)
+      if (!target) return
+      const by = meRef.current
+      const mine = target.reactions.some((r) => r.by === by && r.emoji === emoji)
+      const reactions = mine
+        ? target.reactions.filter((r) => !(r.by === by && r.emoji === emoji))
+        : [...target.reactions, { by, emoji, at: new Date().toISOString() }]
+      const updated = { ...target, reactions }
+      void commit(
+        all.map((t) => (t.id === id ? updated : t)),
+        () => backend.upsertTodos([updated])
+      )
+    },
+    [commit]
+  )
+
+  /** The line this person leaves on the other's card. Saved as they pause. */
+  const setNoteForPartner = useCallback(
+    (text: string) => updateProfile(meRef.current, { note_for_partner: text }, "soon"),
+    [updateProfile]
+  )
+
+  /** "thinking of you" */
+  const ping = useCallback(() => {
+    updateProfile(meRef.current, { last_ping_at: new Date().toISOString() })
+  }, [updateProfile])
+
+  /**
+   * Mirror this person's focus timer onto their profile, so the other phone
+   * can show it and join. Only writes when something actually changed.
+   */
+  const setFocus = useCallback(
+    (session: FocusSession) => {
+      const id = meRef.current
+      const cur = profilesRef.current[id]
+      const patch: Partial<Profile> = session
+        ? {
+            focus_ends_at: new Date(session.endsAt).toISOString(),
+            focus_duration: session.minutes,
+            focus_mode: session.mode,
+            started_by: session.startedBy,
+          }
+        : {
+            focus_ends_at: null,
+            focus_duration: null,
+            focus_mode: null,
+            started_by: null,
+          }
+      const same =
+        (cur.focus_ends_at ? Date.parse(cur.focus_ends_at) : null) ===
+          (patch.focus_ends_at ? Date.parse(patch.focus_ends_at) : null) &&
+        cur.focus_mode === patch.focus_mode &&
+        cur.started_by === patch.started_by
+      if (same) return
+      updateProfile(id, patch)
+    },
+    [updateProfile]
+  )
 
   /**
    * Yesterday's unfinished top-level tasks, by owner — "yesterday" being
@@ -451,6 +603,11 @@ export function useOurDays(dayOffset: number) {
     leftovers,
     bringOver,
     reorder,
+    toggleReaction,
+    setNoteForPartner,
+    ping,
+    setFocus,
+    partner: other(me),
     /** whether cheers, memories, notes, together and shared focus can be saved */
     v3: backend.kind === "local" || v3,
   }

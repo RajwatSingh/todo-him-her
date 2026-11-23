@@ -233,6 +233,26 @@ export function usePomodoro() {
     }
   }, [goTo, inSet, phase])
 
+  /**
+   * Fall in with a block already running somewhere else: focus, ending when
+   * theirs does. Its length is theirs too, so the ring reads the same on both.
+   */
+  const [joinedLengthMs, setJoinedLengthMs] = useState<number | null>(null)
+  const join = useCallback((at: number, minutes: number) => {
+    const left = at - Date.now()
+    if (left <= 0) return
+    setPhase("focus")
+    setJoinedLengthMs(ms(minutes))
+    setRemaining(left)
+    setEndsAt(at)
+    setRunning(true)
+  }, [])
+
+  // a joined block's length only holds until the next phase begins
+  useEffect(() => {
+    if (phase !== "focus") setJoinedLengthMs(null)
+  }, [phase])
+
   const update = useCallback((patch: Partial<FocusSettings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch }
@@ -252,7 +272,15 @@ export function usePomodoro() {
     running,
     remaining,
     /** 0 at the top of the phase, 1 when it's spent */
-    progress: durationMs > 0 ? 1 - remaining / durationMs : 0,
+    progress: (() => {
+      const length = joinedLengthMs ?? durationMs
+      return length > 0 ? Math.min(1, Math.max(0, 1 - remaining / length)) : 0
+    })(),
+    /** when the running phase ends (ms epoch), or null while stopped */
+    endsAt: running ? endsAt : null,
+    /** the running phase's length in minutes */
+    lengthMinutes: Math.round((joinedLengthMs ?? durationMs) / 60_000),
+    join,
     inSet,
     finished,
     toggle,

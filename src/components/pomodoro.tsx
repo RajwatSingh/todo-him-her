@@ -28,6 +28,7 @@ import {
   SET_LENGTH,
   usePomodoro,
   type FocusSettings,
+  type Phase,
 } from "@/lib/pomodoro"
 import { dealQuotes } from "@/lib/quote"
 import { cn } from "@/lib/utils"
@@ -68,14 +69,27 @@ function useIdle(delay: number, enabled: boolean) {
   return idle
 }
 
+/** what's running, as the other phone should see it — null when stopped */
+export type PomodoroSession = {
+  mode: Phase
+  endsAt: number
+  minutes: number
+} | null
+
 export function Pomodoro({
   active,
   onChromeChange,
+  onSession,
+  join,
 }: {
   /** whether this is the tab on screen — the timer runs either way */
   active: boolean
   /** lets the page dim its own furniture while the screen clears */
   onChromeChange?: (visible: boolean) => void
+  /** told whenever a phase starts, stops or changes, to sync it */
+  onSession?: (session: PomodoroSession) => void
+  /** a request to fall in with the other one's block; `key` makes it new */
+  join?: { endsAt: number; minutes: number; key: number } | null
 }) {
   const {
     settings,
@@ -89,7 +103,31 @@ export function Pomodoro({
     toggle,
     reset,
     skip,
+    endsAt,
+    lengthMinutes,
+    join: joinAt,
   } = usePomodoro()
+
+  // Report the session whenever it actually changes. The very first report
+  // is skipped when nothing is running: opening the page on a second device
+  // shouldn't wipe out a block that's running on the first.
+  const reported = useRef(false)
+  useEffect(() => {
+    if (!reported.current) {
+      reported.current = true
+      if (endsAt === null) return
+    }
+    onSession?.(endsAt === null ? null : { mode: phase, endsAt, minutes: lengthMinutes })
+    // lengthMinutes follows phase; endsAt changes on every start/resume/phase
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endsAt, phase])
+
+  const joinKey = join?.key
+  useEffect(() => {
+    if (join) joinAt(join.endsAt, join.minutes)
+    // only a new request (a new key) should start anything
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [joinKey])
 
   const [adjusting, setAdjusting] = useState(false)
   const idle = useIdle(5000, active && running && !adjusting)
@@ -110,12 +148,17 @@ export function Pomodoro({
     }
   }, [clock, phase, running])
 
-  // Space starts and stops, the way every other timer does.
+  // Space starts and stops, the way every other timer does — but only while
+  // this tab is the one on screen. (It used to listen everywhere, so a space
+  // typed on the lists tab could quietly start a block, and now that blocks
+  // are shared, the other phone would see it too.)
   const toggleRef = useRef(toggle)
   toggleRef.current = toggle
+  const activeRef = useRef(active)
+  activeRef.current = active
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.code !== "Space") return
+      if (event.code !== "Space" || !activeRef.current) return
       const target = event.target as HTMLElement | null
       if (target?.closest("input, textarea, button, [contenteditable]")) return
       event.preventDefault()

@@ -79,6 +79,9 @@
      counts — is Satoshi (Fontshare), a geometric sans that stays quiet at
      12px and still has some warmth in its rounds. */
   --font-display: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+  /* The one exception to the two-face rule: the note each of you leaves on
+     the other's card is in a hand, because it's meant to read as written. */
+  --font-hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
   --font-sans:
     "Satoshi", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui,
     sans-serif;
@@ -127,6 +130,7 @@
 
   --font-display: var(--font-display);
   --font-serif: var(--font-display);
+  --font-hand: var(--font-hand);
   --font-sans: var(--font-sans);
 
   --text-fine: var(--t-fine);
@@ -319,6 +323,27 @@
 .focus-grain {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
+}
+
+/* "thinking of you": the card's edge breathes in their colour, three times */
+@keyframes ping-glow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  48%,
+  81% {
+    opacity: 1;
+  }
+  31%,
+  64% {
+    opacity: 0.35;
+  }
+}
+
+.ping-glow {
+  animation: ping-glow 3.6s ease-in-out both;
 }
 
 /* soft twinkle for the sleeping starfield */
