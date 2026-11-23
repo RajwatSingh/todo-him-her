@@ -170,16 +170,20 @@ export function PersonColumn({
               haptic(8)
               onSetSleeping(!sleep.asleep)
             }}
-            className="inline-flex shrink-0 items-center gap-1.5 text-fine text-muted-foreground underline-offset-4 transition-colors outline-none hover:text-foreground hover:underline focus-visible:text-foreground focus-visible:underline"
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2.5 py-0.5 text-xs font-medium text-foreground/90",
+              "transition-colors outline-none hover:bg-white/15 hover:text-foreground active:scale-[0.97]",
+              "focus-visible:ring-2 focus-visible:ring-white/40"
+            )}
           >
             {sleep.asleep ? (
               <>
-                <Sunrise className="size-3.5" />
+                <Sunrise className="size-3" />
                 good morning
               </>
             ) : (
               <>
-                <MoonStar className="size-3.5" />
+                <MoonStar className="size-3" />
                 goodnight
               </>
             )}
@@ -220,10 +224,17 @@ export function PersonColumn({
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* the next thing — a line to write on, not a box to fill in          */}
+      {/* the next thing — a recessed field, so it reads as somewhere to     */}
+      {/* type rather than as one more line of text                         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="group/add relative z-10 mx-5 mt-5 flex items-center gap-2.5 border-b border-white/14 pb-2.5 transition-colors focus-within:border-[var(--tone)]">
-        <span className="grid size-5 shrink-0 place-items-center text-muted-foreground">
+      <label
+        className={cn(
+          "group/add relative z-10 mx-5 mt-5 flex cursor-text items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2",
+          "shadow-[inset_0_1px_2px_oklch(0.05_0.02_285/0.35)] transition-colors",
+          "hover:border-white/15 focus-within:border-white/25 focus-within:bg-white/[0.07]"
+        )}
+      >
+        <span className="grid size-5 shrink-0 place-items-center text-white/50 transition-colors group-focus-within/add:text-white/75">
           {draft.trim() ? (
             <Twemoji className="size-4">{guessIcon(draft)}</Twemoji>
           ) : (
@@ -237,7 +248,7 @@ export function PersonColumn({
             if (e.key === "Enter") submit()
           }}
           placeholder={`what's on ${profile.name}'s day?`}
-          className="min-w-0 flex-1 bg-transparent text-body outline-none placeholder:text-muted-foreground/70"
+          className="min-w-0 flex-1 bg-transparent text-body leading-6 outline-none placeholder:text-white/45"
         />
         <AnimatePresence>
           {draft.trim() ? (
@@ -247,14 +258,14 @@ export function PersonColumn({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 6 }}
               onClick={submit}
-              className="text-fine font-medium underline-offset-4 transition-opacity hover:underline"
-              style={{ color: tone }}
+              className="-my-0.5 rounded-md px-2 py-0.5 text-xs font-medium transition-[filter] outline-none hover:brightness-110 focus-visible:ring-2 focus-visible:ring-white/40"
+              style={{ backgroundColor: tone, color: "var(--void)" }}
             >
               add
             </motion.button>
           ) : null}
         </AnimatePresence>
-      </div>
+      </label>
 
       {/* ------------------------------------------------------------------ */}
       {/* the day itself                                                     */}
