@@ -136,5 +136,3 @@ src/
     icon-picker.tsx        the emoji popover
     night-sky.tsx          stars + moonglow for the sleeping state
 ```
-
-The previous single-file version is kept at `legacy/v1-index.html`.
