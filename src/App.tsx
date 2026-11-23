@@ -138,10 +138,12 @@ function Days({ active }: { active: boolean }) {
                 exit={{ opacity: 0, x: -6, scale: 0.94 }}
                 transition={{ type: "spring", stiffness: 420, damping: 30 }}
                 whileTap={{ scale: 0.95 }}
-                className="absolute top-1 left-full ml-2 inline-flex h-6 items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 text-xs font-medium whitespace-nowrap text-white/75 transition-colors outline-none hover:bg-white/[0.12] hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40"
+                className="group/today absolute top-0 left-full inline-flex min-h-10 items-center pl-1 outline-none"
               >
-                <RotateCcw className="size-3" strokeWidth={2.2} />
-                today
+                <span className="inline-flex h-6 items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2.5 text-xs font-medium whitespace-nowrap text-white/75 transition-colors group-hover/today:bg-white/[0.12] group-hover/today:text-foreground group-focus-visible/today:ring-2 group-focus-visible/today:ring-white/40">
+                  <RotateCcw className="size-3" strokeWidth={2.2} />
+                  today
+                </span>
               </motion.button>
             ) : null}
           </AnimatePresence>

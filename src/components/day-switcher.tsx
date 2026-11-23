@@ -24,14 +24,16 @@ export function DaySwitcher({
   const label = LABELS[value] ?? `${value > 0 ? "+" : ""}${value} days`
 
   return (
-    <div className="relative z-10 flex items-center justify-center gap-1 pb-1">
+    // Every control here is a 40px hit area around a smaller visible shape:
+    // the pills keep their look, a thumb just can't miss them.
+    <div className="relative z-10 flex items-center justify-center pb-1">
       <Arrow
         direction="left"
         label="previous day"
         onClick={() => onChange(value - 1)}
       />
 
-      <div className="relative flex h-8 min-w-[7.5rem] items-center justify-center">
+      <div className="relative flex min-h-10 min-w-[7.5rem] items-center justify-center">
         <motion.button
           type="button"
           key={label}
@@ -39,14 +41,17 @@ export function DaySwitcher({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
           onClick={() => onChange(0)}
-          className={cn(
-            "control rounded-full px-4 py-1.5 text-small font-medium",
-            "text-foreground outline-none",
-            "hover:text-foreground active:scale-[0.96] active:transition-transform",
-            "focus-visible:ring-2 focus-visible:ring-white/50"
-          )}
+          className="group/day inline-flex min-h-10 items-center px-0.5 outline-none"
         >
-          {label}
+          <span
+            className={cn(
+              "control rounded-full px-4 py-1.5 text-small font-medium text-foreground",
+              "group-active/day:scale-[0.96] group-active/day:transition-transform",
+              "group-focus-visible/day:ring-2 group-focus-visible/day:ring-white/50"
+            )}
+          >
+            {label}
+          </span>
         </motion.button>
       </div>
 
@@ -75,9 +80,11 @@ function Arrow({
       aria-label={label}
       onClick={onClick}
       whileTap={{ scale: 0.92 }}
-      className="control grid size-8 place-items-center rounded-full text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/50"
+      className="group/arrow grid size-10 place-items-center outline-none"
     >
-      <Icon className="size-4" strokeWidth={2} />
+      <span className="control grid size-8 place-items-center rounded-full text-muted-foreground group-hover/arrow:text-foreground group-focus-visible/arrow:ring-2 group-focus-visible/arrow:ring-white/50">
+        <Icon className="size-4" strokeWidth={2} />
+      </span>
     </motion.button>
   )
 }

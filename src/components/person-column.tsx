@@ -170,23 +170,28 @@ export function PersonColumn({
               haptic(8)
               onSetSleeping(!sleep.asleep)
             }}
-            className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2.5 py-0.5 text-xs font-medium text-foreground/90",
-              "transition-colors outline-none hover:bg-white/15 hover:text-foreground active:scale-[0.97]",
-              "focus-visible:ring-2 focus-visible:ring-white/40"
-            )}
+            // 40px to tap, a small pill to look at
+            className="group/sleep -my-2 inline-flex min-h-10 shrink-0 items-center outline-none"
           >
-            {sleep.asleep ? (
-              <>
-                <Sunrise className="size-3" />
-                good morning
-              </>
-            ) : (
-              <>
-                <MoonStar className="size-3" />
-                goodnight
-              </>
-            )}
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-2.5 py-0.5 text-xs font-medium text-foreground/90",
+                "transition-colors group-hover/sleep:bg-white/15 group-hover/sleep:text-foreground group-active/sleep:scale-[0.97]",
+                "group-focus-visible/sleep:ring-2 group-focus-visible/sleep:ring-white/40"
+              )}
+            >
+              {sleep.asleep ? (
+                <>
+                  <Sunrise className="size-3" />
+                  good morning
+                </>
+              ) : (
+                <>
+                  <MoonStar className="size-3" />
+                  goodnight
+                </>
+              )}
+            </span>
           </button>
         </div>
 
