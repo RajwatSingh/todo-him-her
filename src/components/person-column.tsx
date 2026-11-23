@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { MoonStar, Plus, Sunrise } from "lucide-react"
+import { ArrowRight, MoonStar, Plus, Sunrise, X } from "lucide-react"
 
 import { Figures } from "@/components/figures"
 import { TodoItem } from "@/components/todo-item"
@@ -11,6 +11,7 @@ import {
   clockIn,
   dayPhaseIn,
   humanDuration,
+  localDay,
   longDateIn,
   resolveSleep,
 } from "@/lib/time"
@@ -32,6 +33,9 @@ export type PersonColumnProps = {
   onClearCompleted: () => void
   /** their own "goodnight" / "good morning", which outranks the clock */
   onSetSleeping: (asleep: boolean) => void
+  /** unfinished top-level tasks left on their yesterday (0 unless on today) */
+  leftovers: number
+  onBringOver: () => void
 }
 
 /**
@@ -61,8 +65,11 @@ export function PersonColumn({
   onRename,
   onClearCompleted,
   onSetSleeping,
+  leftovers,
+  onBringOver,
 }: PersonColumnProps) {
   const [draft, setDraft] = useState("")
+  const [carryHidden, hideCarry] = useCarryDismissed(profile.id, profile.timezone)
 
   const isA = profile.id === "a"
   const tone = isA ? "var(--a-accent)" : "var(--b-accent)"
@@ -228,6 +235,52 @@ export function PersonColumn({
         </div>
       </div>
 
+      {/* yesterday's loose ends, offered back — once per day, dismissable */}
+      <AnimatePresence initial={false}>
+        {leftovers > 0 && !carryHidden ? (
+          <motion.div
+            key="carry"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="relative z-10 overflow-hidden"
+          >
+            <div className="mx-5 mt-4 flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] py-0.5 pr-0.5 pl-3">
+              <Sunrise className="size-3.5 shrink-0 text-white/55" />
+              <span className="ml-1.5 min-w-0 flex-1 truncate text-small text-white/75">
+                {leftovers} left from yesterday
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  haptic(8)
+                  onBringOver()
+                }}
+                className="group/carry inline-flex min-h-10 shrink-0 items-center px-1 outline-none"
+              >
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-[filter] group-hover/carry:brightness-110 group-focus-visible/carry:ring-2 group-focus-visible/carry:ring-white/40"
+                  style={{ backgroundColor: tone, color: "var(--void)" }}
+                >
+                  bring over
+                  <ArrowRight className="size-3" strokeWidth={2.4} />
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={hideCarry}
+                aria-label="not today"
+                title="not today"
+                className="grid size-10 shrink-0 place-items-center rounded-md text-white/45 transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       {/* ------------------------------------------------------------------ */}
       {/* the next thing — a recessed field, so it reads as somewhere to     */}
       {/* type rather than as one more line of text                         */}
@@ -307,6 +360,30 @@ export function PersonColumn({
       )}
     </motion.section>
   )
+}
+
+/**
+ * "not today" on the carry-over banner, remembered for the rest of *their*
+ * day on this device.
+ */
+function useCarryDismissed(id: string, timezone: string) {
+  const key = `our-days:carry-hidden:${id}:${localDay(timezone)}`
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return localStorage.getItem(key) === "1"
+    } catch {
+      return false
+    }
+  })
+  const hide = () => {
+    setHidden(true)
+    try {
+      localStorage.setItem(key, "1")
+    } catch {
+      // fine — it just comes back on reload
+    }
+  }
+  return [hidden, hide] as const
 }
 
 /** "just now" / "20m ago" — how long they've been in this state. */

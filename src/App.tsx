@@ -88,6 +88,8 @@ function Days({ active }: { active: boolean }) {
     clearCompleted,
     saveProfile,
     setSleeping,
+    leftovers,
+    bringOver,
   } = useOurDays(dayOffset)
 
   const gap = offsetBetween(profiles.a.timezone, profiles.b.timezone, now)
@@ -176,6 +178,8 @@ function Days({ active }: { active: boolean }) {
             onRename={(name) => saveProfile({ ...profiles[id], name })}
             onClearCompleted={() => clearCompleted(id, columns[id].day)}
             onSetSleeping={(asleep) => setSleeping(id, asleep)}
+            leftovers={leftovers[id].length}
+            onBringOver={() => bringOver(id)}
           />
         ))}
       </main>

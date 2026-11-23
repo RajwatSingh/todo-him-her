@@ -320,6 +320,84 @@ export function useOurDays(dayOffset: number) {
     })
   }, [])
 
+  /**
+   * Yesterday's unfinished top-level tasks, by owner — "yesterday" being
+   * *their* yesterday. Only offered while looking at today.
+   */
+  const leftovers = useMemo(() => {
+    const find = (owner: PersonId) => {
+      if (dayOffset !== 0) return []
+      const yesterday = localDay(profiles[owner].timezone, -1)
+      return todos.filter(
+        (t) =>
+          t.scope === "personal" &&
+          t.owner === owner &&
+          t.day === yesterday &&
+          t.parent_id === null &&
+          !t.completed
+      )
+    }
+    return { a: find("a"), b: find("b") }
+  }, [dayOffset, profiles, todos])
+
+  /**
+   * Move yesterday's unfinished tasks onto today, each with everything nested
+   * under it, after whatever is already planned. Moved rather than copied, so
+   * the same task never shows up on two days.
+   */
+  const bringOver = useCallback(
+    (owner: PersonId) => {
+      const all = todosRef.current
+      const today = localDay(profilesRef.current[owner].timezone)
+      const yesterday = localDay(profilesRef.current[owner].timezone, -1)
+      const roots = all
+        .filter(
+          (t) =>
+            t.scope === "personal" &&
+            t.owner === owner &&
+            t.day === yesterday &&
+            t.parent_id === null &&
+            !t.completed
+        )
+        .sort((x, y) => x.position - y.position)
+      if (roots.length === 0) return
+
+      let next = all
+        .filter(
+          (t) =>
+            t.scope === "personal" &&
+            t.owner === owner &&
+            t.day === today &&
+            t.parent_id === null
+        )
+        .reduce((max, t) => Math.max(max, t.position), -1)
+
+      const moved = new Map<string, Todo>()
+      for (const root of roots) {
+        next += 1
+        for (const id of withDescendants(all, root.id)) {
+          const t = all.find((x) => x.id === id)!
+          moved.set(id, {
+            ...t,
+            day: today,
+            position: id === root.id ? next : t.position,
+          })
+        }
+      }
+
+      void commit(
+        all.map((t) => moved.get(t.id) ?? t),
+        () => backend.upsertTodos([...moved.values()])
+      )
+      toast({
+        message: `brought over ${roots.length} from yesterday`,
+        icon: "🌅",
+        duration: 3500,
+      })
+    },
+    [commit]
+  )
+
   /** Per-person view of the currently selected day, already nested. */
   const columns = useMemo(() => {
     const build = (owner: PersonId) => {
@@ -351,6 +429,8 @@ export function useOurDays(dayOffset: number) {
     clearCompleted,
     saveProfile,
     setSleeping,
+    leftovers,
+    bringOver,
     /** whether cheers, memories, notes, together and shared focus can be saved */
     v3: backend.kind === "local" || v3,
   }
