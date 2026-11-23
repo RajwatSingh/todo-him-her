@@ -52,7 +52,7 @@ export function IconPicker({
         <div className="max-h-72 space-y-3 overflow-y-auto pretty-scroll">
           {ICON_GROUPS.map((group) => (
             <div key={group.label}>
-              <div className="mb-1.5 px-1 font-display text-[0.72rem] text-muted-foreground italic">
+              <div className="mb-1.5 px-1 text-[0.72rem] font-medium tracking-wide text-muted-foreground">
                 {group.label}
               </div>
               <div className="grid grid-cols-10 gap-0.5">

@@ -184,7 +184,7 @@ export function TodoItem({
                       }}
                       className={cn(
                         "mt-1 w-full resize-none overflow-hidden rounded-sm border-l py-0.5 pl-2.5",
-                        "bg-transparent font-display text-small leading-relaxed text-muted-foreground italic",
+                        "bg-transparent text-small leading-relaxed text-muted-foreground",
                         "outline-none transition-colors placeholder:text-muted-foreground/45",
                         "focus:bg-foreground/[0.03]"
                       )}

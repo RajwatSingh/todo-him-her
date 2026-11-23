@@ -162,7 +162,7 @@ function Days({ active }: { active: boolean }) {
             }}
           />
           {totalAll > 0 ? (
-            <span className="font-display text-[0.8rem] whitespace-nowrap text-muted-foreground italic">
+            <span className="text-fine whitespace-nowrap text-muted-foreground tnum">
               {totalDone} of {totalAll} done between you
             </span>
           ) : null}

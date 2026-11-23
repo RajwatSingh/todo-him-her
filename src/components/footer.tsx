@@ -16,7 +16,7 @@ export type FooterProps = {
 export function OurFooter({ note, mode, error }: FooterProps) {
   return (
     <footer className="relative z-10 flex flex-col items-center gap-5 pt-2 pb-3 text-center">
-      <p className="font-display text-lead text-muted-foreground italic">
+      <p className="text-body text-muted-foreground">
         {note}
       </p>
 
@@ -30,13 +30,13 @@ export function OurFooter({ note, mode, error }: FooterProps) {
         {/* "for" set between two hairlines, like a dedication page */}
         <div className="flex items-center gap-3">
           <span className="h-px w-12 bg-gradient-to-r from-transparent to-border sm:w-16" />
-          <span className="font-display text-fine text-muted-foreground italic">
+          <span className="text-fine tracking-wide text-muted-foreground">
             for
           </span>
           <span className="h-px w-12 bg-gradient-to-l from-transparent to-border sm:w-16" />
         </div>
 
-        <p className="font-display flex items-baseline gap-2 text-name leading-none">
+        <p className="flex items-baseline gap-2 text-name leading-none font-medium tracking-[-0.03em]">
           <span style={{ color: "var(--b-accent)" }}>aanya</span>
           <span className="text-[0.7em] text-muted-foreground/50">
             &amp;

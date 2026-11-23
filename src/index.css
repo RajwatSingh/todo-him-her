@@ -72,14 +72,15 @@
   --night-soft: oklch(0.235 0.04 282);
   --done: oklch(0.72 0.11 158);
 
-  /* Newsreader is a serif drawn for reading on a screen rather than for
-     setting headlines, which is exactly why it is here: an optical-size axis
-     and a real italic, so it can be elegant at 116px and perfectly plain at
-     16px. Inter takes the interface labels, where the only job is to be
-     unambiguous and then get out of the way. */
+  /* Two faces, and a strict line between them. Newsreader (serif, with an
+     optical-size axis) is kept for the two things that are *read as
+     moments*: the clock where each of them is, and the one-line headline
+     about the two of them. Everything else — tasks, notes, inputs, labels,
+     counts — is Satoshi (Fontshare), a geometric sans that stays quiet at
+     12px and still has some warmth in its rounds. */
   --font-display: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
   --font-sans:
-    "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui,
+    "Satoshi", ui-sans-serif, -apple-system, BlinkMacSystemFont, system-ui,
     sans-serif;
 
   /* Seven sizes, and nothing in between them. The page had a dozen values
@@ -125,6 +126,7 @@
   --color-void: var(--void);
 
   --font-display: var(--font-display);
+  --font-serif: var(--font-display);
   --font-sans: var(--font-sans);
 
   --text-fine: var(--t-fine);

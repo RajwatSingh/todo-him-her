@@ -21,9 +21,9 @@ export function DailyQuote() {
     // The height is held and the text sits on its baseline, so a one-line
     // quote and a two-line one leave the title in exactly the same place.
     <div className="flex min-h-[5.5rem] w-full max-w-[46ch] items-end justify-center px-2">
-      <p className="font-display max-w-[46ch] text-center text-lead leading-[1.5] text-foreground/80 italic">
+      <p className="max-w-[46ch] text-center text-body leading-[1.6] text-pretty text-foreground/80">
         {quote.text}
-        <span className="mt-2 block text-fine not-italic text-muted-foreground">
+        <span className="mt-2 block text-fine text-muted-foreground">
           {quote.author}
         </span>
       </p>

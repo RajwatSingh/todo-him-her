@@ -134,7 +134,7 @@ export function PersonColumn({
               onChange={(e) => onRename(e.target.value)}
               aria-label="name"
               size={Math.max(profile.name.length, 3)}
-              className="font-display min-w-0 max-w-[8rem] bg-transparent text-lead leading-none text-foreground outline-none"
+              className="min-w-0 max-w-[8rem] bg-transparent text-lead leading-none font-medium tracking-[-0.02em] text-foreground outline-none"
             />
           </div>
           <span className="shrink-0 text-fine text-muted-foreground">
@@ -145,7 +145,7 @@ export function PersonColumn({
         {/* the hour where they are, and the day it belongs to */}
         <div className="mt-3 flex items-baseline justify-between gap-3">
           <div className="flex items-baseline gap-1.5">
-            <span className="font-display font-display-xl text-hour leading-[0.9] text-foreground">
+            <span className="font-serif font-display-xl text-hour leading-[0.9] text-foreground">
               <Figures>{clock}</Figures>
             </span>
             {suffix ? (
@@ -299,7 +299,7 @@ function sinceLabel(minutes: number) {
 
 function EmptyState({ asleep, name }: { asleep: boolean; name: string }) {
   return (
-    <p className="font-display max-w-[26ch] text-lead leading-snug text-muted-foreground italic">
+    <p className="max-w-[30ch] text-small leading-relaxed text-muted-foreground">
       {asleep
         ? `${name} is asleep. the day hasn't started yet.`
         : "a blank day. add the first thing."}

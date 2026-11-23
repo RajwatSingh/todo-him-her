@@ -49,16 +49,18 @@ export function HelloHeader({ subtitle }: { subtitle: string }) {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.2 }}
-        className="font-display font-display-xl text-[2.75rem] leading-none text-foreground sm:text-[3.4rem]"
+        className="font-sans text-[2.5rem] leading-none font-medium tracking-[-0.045em] text-foreground sm:text-[3rem]"
       >
         our days
       </motion.h1>
 
+      {/* the one sentence about the two of them, in the serif — the only
+          prose on the page that gets it */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.35 }}
-        className="max-w-md text-small text-muted-foreground"
+        className="font-serif max-w-xl text-[1.375rem] leading-snug tracking-[-0.01em] text-balance text-foreground/90 sm:text-[1.625rem]"
       >
         {subtitle}
       </motion.p>
