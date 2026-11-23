@@ -44,6 +44,8 @@ export type PersonColumnProps = {
   /** whether cheers, notes, pings and shared focus can be saved */
   v3: boolean
   onCheer: (id: string) => void
+  /** keep a finished task in the scrapbook */
+  onKeep: (id: string) => void
   /** the line the other one has left for this card's person */
   note: string
   noteAuthor: string
@@ -92,6 +94,7 @@ export function PersonColumn({
   viewer,
   v3,
   onCheer,
+  onKeep,
   note,
   noteAuthor,
   onNoteChange,
@@ -142,6 +145,7 @@ export function PersonColumn({
       haptic(8)
       onCheer(id)
     },
+    keep: onKeep,
   }
 
   const submit = () => {

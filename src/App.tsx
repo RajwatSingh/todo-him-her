@@ -6,10 +6,14 @@ import { OurFooter } from "@/components/footer"
 import { HelloHeader } from "@/components/hello-header"
 import { PersonColumn } from "@/components/person-column"
 import { Pomodoro, type PomodoroSession } from "@/components/pomodoro"
+import { Scrapbook } from "@/components/scrapbook"
 import { Sky, lightFor } from "@/components/sky"
 import { TabSwitcher, type TabId } from "@/components/tab-switcher"
 import { Toaster } from "@/components/toaster"
+import { TogetherCard } from "@/components/together-card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { WeekStrip } from "@/components/week-strip"
+import { haptic } from "@/lib/haptic"
 import { useMe } from "@/lib/identity"
 import { useOurDays } from "@/lib/store"
 import { offsetBetween, partsIn, resolveSleep } from "@/lib/time"
@@ -142,6 +146,7 @@ function Days({
 }) {
   const now = useNow()
   const intro = useDailyIntro()
+  const [memoriesOpen, setMemoriesOpen] = useState(false)
 
   const {
     profiles,
@@ -161,8 +166,13 @@ function Days({
     bringOver,
     reorder,
     toggleReaction,
+    toggleMemory,
     setNoteForPartner,
     ping,
+    together,
+    clearTogether,
+    memories,
+    todos,
   } = store
 
   const gap = offsetBetween(profiles.a.timezone, profiles.b.timezone, now)
@@ -233,6 +243,17 @@ function Days({
         </div>
       </div>
 
+      <WeekStrip
+        todos={todos}
+        profiles={profiles}
+        me={me}
+        dayOffset={dayOffset}
+        now={now}
+        onPick={setDayOffset}
+        memories={memories.length}
+        onOpenMemories={v3 ? () => setMemoriesOpen(true) : undefined}
+      />
+
       <main className="relative z-10 grid grid-cols-1 items-start gap-5 md:grid-cols-2 md:gap-6">
         {PEOPLE.map((id) => {
           const them = profiles[other(id)]
@@ -259,6 +280,7 @@ function Days({
               viewer={me}
               v3={v3}
               onCheer={toggleReaction}
+              onKeep={toggleMemory}
               note={them.note_for_partner}
               noteAuthor={them.name}
               onNoteChange={mine ? undefined : setNoteForPartner}
@@ -270,6 +292,44 @@ function Days({
           )
         })}
       </main>
+
+      {v3 ? (
+        <TogetherCard
+          tree={together.tree}
+          total={together.total}
+          done={together.done}
+          onAdd={(text) => addTodo(me, text, null, "together")}
+          onClearDone={clearTogether}
+          actions={{
+            toggle: (id) => {
+              haptic(8)
+              toggleTodo(id)
+            },
+            patch: patchTodo,
+            remove: removeTodo,
+            addChild: (parentId, text) => addTodo(me, text, parentId),
+            reorder,
+            me,
+            v3,
+            cheer: (id) => {
+              haptic(8)
+              toggleReaction(id)
+            },
+            keep: toggleMemory,
+          }}
+        />
+      ) : null}
+
+      {v3 ? (
+        <Scrapbook
+          open={memoriesOpen}
+          onOpenChange={setMemoriesOpen}
+          memories={memories}
+          profiles={profiles}
+          onNote={(id, note) => patchTodo(id, { memory_note: note })}
+          onLetGo={toggleMemory}
+        />
+      ) : null}
 
       {/* the seam between the two columns: one hairline, the shared count
           resting on it, reaching out to each of them */}

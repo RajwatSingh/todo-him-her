@@ -350,19 +350,26 @@ export function useOurDays(dayOffset: number, me: PersonId) {
     [commit, restore]
   )
 
-  const clearCompleted = useCallback(
-    (owner: PersonId, day: string) => {
+  /**
+   * Clear finished tasks matching `match` — except saved memories, and
+   * anything above or below one, since deleting a parent takes its children
+   * with it. A memory stays put until it's un-kept.
+   */
+  const clearWhere = useCallback(
+    (match: (t: Todo) => boolean) => {
       const all = todosRef.current
+      const byId = new Map(all.map((t) => [t.id, t]))
+      const kept = new Set<string>()
+      for (const m of all) {
+        if (!m.is_memory) continue
+        for (const id of withDescendants(all, m.id)) kept.add(id)
+        for (let p = m.parent_id; p; p = byId.get(p)?.parent_id ?? null) kept.add(p)
+      }
+
       const doomed = new Set<string>()
       for (const t of all) {
-        if (
-          t.scope === "personal" &&
-          t.owner === owner &&
-          t.day === day &&
-          t.completed
-        ) {
-          for (const id of withDescendants(all, t.id)) doomed.add(id)
-        }
+        if (!t.completed || !match(t) || kept.has(t.id)) continue
+        for (const id of withDescendants(all, t.id)) if (!kept.has(id)) doomed.add(id)
       }
       if (doomed.size === 0) return
 
@@ -378,6 +385,29 @@ export function useOurDays(dayOffset: number, me: PersonId) {
       })
     },
     [commit, restore]
+  )
+
+  const clearCompleted = useCallback(
+    (owner: PersonId, day: string) =>
+      clearWhere((t) => t.scope === "personal" && t.owner === owner && t.day === day),
+    [clearWhere]
+  )
+
+  const clearTogether = useCallback(
+    () => clearWhere((t) => t.scope === "together"),
+    [clearWhere]
+  )
+
+  /** Keep a finished task for the scrapbook, or let it go again. */
+  const toggleMemory = useCallback(
+    (id: string) => {
+      const target = todosRef.current.find((t) => t.id === id)
+      if (!target) return
+      const keep = !target.is_memory
+      patchTodo(id, { is_memory: keep })
+      if (keep) toast({ message: "kept in your memories", icon: "📖", duration: 2500 })
+    },
+    [patchTodo]
   )
 
   const saveProfile = useCallback((profile: Profile) => {
@@ -569,6 +599,27 @@ export function useOurDays(dayOffset: number, me: PersonId) {
     [commit]
   )
 
+  /** The together list: undated, shared, ignoring both sleep clocks. */
+  const together = useMemo(() => {
+    const list = todos.filter((t) => t.scope === "together")
+    return {
+      tree: buildTree(list),
+      total: list.length,
+      done: list.filter((t) => t.completed).length,
+    }
+  }, [todos])
+
+  /** Every kept moment, oldest first. */
+  const memories = useMemo(
+    () =>
+      todos
+        .filter((t) => t.is_memory)
+        .sort((x, y) =>
+          x.day === y.day ? x.created_at.localeCompare(y.created_at) : x.day.localeCompare(y.day)
+        ),
+    [todos]
+  )
+
   /** Per-person view of the currently selected day, already nested. */
   const columns = useMemo(() => {
     const build = (owner: PersonId) => {
@@ -604,6 +655,12 @@ export function useOurDays(dayOffset: number, me: PersonId) {
     bringOver,
     reorder,
     toggleReaction,
+    clearTogether,
+    toggleMemory,
+    together,
+    memories,
+    /** everything, flat — for the week strip */
+    todos,
     setNoteForPartner,
     ping,
     setFocus,

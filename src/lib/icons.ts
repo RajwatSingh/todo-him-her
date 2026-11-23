@@ -41,6 +41,8 @@ const HINTS: [RegExp, string][] = [
   [/\b(chai|tea|coffee|caf(e|é)|latte|espresso)\b/i, "☕"],
   [/\b(matcha|green tea|herbal)\b/i, "🍵"],
   [/\b(plants?|garden\w*|repot\w*|water the)\b/i, "🪴"],
+  // before books: "book flights" is a trip, not a read
+  [/\b(flights?|fly|airport|travel\w*|trip|visa|passport)\b/i, "✈️"],
   [/\b(read|reading|books?|chapters?|novel)\b/i, "📚"],
   [/\b(run|running|jog\w*|walk\w*|steps)\b/i, "🏃"],
   [/\b(gym|workout|lift\w*|exercise|training)\b/i, "🏋️"],
@@ -67,7 +69,6 @@ const HINTS: [RegExp, string][] = [
   [/\b(shower|bath)\b/i, "🛁"],
   [/\b(skincare|lotion|sunscreen|moisturi[sz]e)\b/i, "🧴"],
   [/\b(sleep\w*|nap|rest|bed)\b/i, "😴"],
-  [/\b(flights?|fly|airport|travel\w*|trip|visa|passport)\b/i, "✈️"],
   [/\b(trains?|metro|station)\b/i, "🚉"],
   [/\b(bus|drive|car|uber|ride)\b/i, "🚗"],
   [/\b(pack\w*|package|parcel|deliver\w*|post office|return)\b/i, "📦"],

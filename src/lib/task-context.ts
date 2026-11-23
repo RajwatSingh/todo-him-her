@@ -23,6 +23,8 @@ export type TaskActions = {
   v3: boolean
   /** toggle this phone's cheer on a task */
   cheer: (id: string) => void
+  /** keep a finished task in the scrapbook, or let it go */
+  keep: (id: string) => void
 }
 
 export const TaskContext = createContext<TaskActions | null>(null)

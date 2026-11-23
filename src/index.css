@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
+/* phones and tablets: no hover, so anything hover-revealed needs another way in */
+@custom-variant touch (@media (hover: none));
 
 /* ---------------------------------------------------------------------------
    our days — ink on cool paper
@@ -57,6 +59,11 @@
   --b-accent: oklch(0.74 0.09 202);
   --b-soft: oklch(0.74 0.09 202 / 46%);
   --b-glow: oklch(0.74 0.09 202 / 22%);
+
+  /* the together list — neither of theirs, a rose that sits between brass
+     and teal */
+  --t-accent: oklch(0.78 0.1 352);
+  --t-glow: oklch(0.78 0.1 352 / 22%);
 
   /* The hour where each of them is, as the fill of their own card. Solid
      enough to read against — these are cards, not panes — but a few points

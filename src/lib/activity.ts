@@ -61,8 +61,13 @@ export function partnerActivity({
   for (const t of nextTodos) {
     if (!newlyDone.has(t.id)) continue
     if (t.parent_id && newlyDone.has(t.parent_id)) continue
-    if (t.owner !== them || fresh(recent, t.id)) continue
-    out.push({ message: `${name} tore off ‘${clip(t.text)}’`, icon: "✨" })
+    // a together task is whoever-added-it's, but either of you can tick it,
+    // so for those anything this device didn't do itself was them
+    if ((t.scope !== "together" && t.owner !== them) || fresh(recent, t.id)) continue
+    out.push({
+      message: `${name} tore off ‘${clip(t.text)}’${t.scope === "together" ? " from together" : ""}`,
+      icon: "✨",
+    })
   }
 
   // a cheer on one of mine

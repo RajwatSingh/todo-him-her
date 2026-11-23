@@ -7,7 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react"
 import { AnimatePresence, Reorder, motion, useDragControls } from "motion/react"
-import { AlignLeft, ChevronDown, Heart, Plus, Trash2 } from "lucide-react"
+import { AlignLeft, Bookmark, ChevronDown, Heart, Plus, Trash2 } from "lucide-react"
 
 import { IconPicker } from "@/components/icon-picker"
 import { TearTicket } from "@/components/tear-check"
@@ -112,7 +112,7 @@ function TodoItem({
   onDragEnd: () => void
   onMove: (delta: number) => void
 }) {
-  const { tone, glow, toggle, patch, remove, addChild, me, v3, cheer } = useTasks()
+  const { tone, glow, toggle, patch, remove, addChild, me, v3, cheer, keep } = useTasks()
 
   const [expanded, setExpanded] = useState(true)
   const [editingText, setEditingText] = useState(false)
@@ -126,6 +126,23 @@ function TodoItem({
   const noteRef = useRef<HTMLTextAreaElement>(null)
 
   const lift = useLongPressLift({ disabled: editingText, onLift: () => haptic(10) })
+
+  // On a touch screen there's no hover to reveal a row's actions, so tapping
+  // the title shows them, and tapping anywhere else puts them away again.
+  // Until then they take no room, so titles get the whole width.
+  const [reveal, setReveal] = useState(false)
+  useEffect(() => {
+    if (!reveal) return
+    const away = (e: PointerEvent) => {
+      if (!lift.ref.current?.contains(e.target as Node)) setReveal(false)
+    }
+    document.addEventListener("pointerdown", away)
+    return () => document.removeEventListener("pointerdown", away)
+  }, [reveal, lift.ref])
+  const onTouchScreen = () =>
+    typeof window !== "undefined" && window.matchMedia("(hover: none)").matches
+  /** classes for something that's shown on hover with a mouse, on tap by touch */
+  const tapToShow = reveal ? "touch:flex touch:opacity-100" : "touch:hidden"
 
   // Grow the note to fit its content — on mount too, not just while typing,
   // otherwise a saved multi-line note comes back clipped to one row.
@@ -249,6 +266,7 @@ function TodoItem({
                 title="double-click to edit · hold to move · alt+↑↓ to reorder"
                 onDoubleClick={() => setEditingText(true)}
                 onClick={() => {
+                  if (onTouchScreen()) setReveal((v) => !v)
                   if (node.description || showNote) setShowNote((v) => !v)
                 }}
                 className={cn(
@@ -301,7 +319,45 @@ function TodoItem({
           </div>
 
           {v3 ? (
-            <Cheers node={node} me={me} tone={tone} line={line} onCheer={() => cheer(node.id)} />
+            <Cheers
+              node={node}
+              me={me}
+              tone={tone}
+              line={line}
+              tapToShow={tapToShow}
+              onCheer={() => cheer(node.id)}
+            />
+          ) : null}
+
+          {/* kept for the scrapbook: offered once a task is torn off, and
+              always showing (filled) once it's been kept */}
+          {v3 && (node.completed || node.is_memory) ? (
+            <div
+              data-no-drag
+              className={cn(
+                "flex shrink-0 items-center transition-opacity",
+                line,
+                node.is_memory
+                  ? "opacity-100"
+                  : cn("opacity-0 group-hover/item:opacity-100 focus-within:opacity-100", tapToShow)
+              )}
+            >
+              <motion.button
+                type="button"
+                onClick={() => keep(node.id)}
+                whileTap={{ scale: 0.85 }}
+                aria-pressed={node.is_memory}
+                aria-label={node.is_memory ? "kept in memories — let it go" : "keep as a memory"}
+                title={node.is_memory ? "kept in memories" : "keep as a memory"}
+                className="grid size-6 place-items-center rounded-md text-white/55 transition-colors hover:bg-white/[0.08] hover:text-foreground"
+              >
+                <Bookmark
+                  className="size-3.5"
+                  strokeWidth={2.2}
+                  style={node.is_memory ? { fill: tone, color: tone } : undefined}
+                />
+              </motion.button>
+            </div>
           ) : null}
 
           {/* row actions: hidden until the row is hovered or focused */}
@@ -311,7 +367,7 @@ function TodoItem({
               "flex shrink-0 items-center gap-0.5 transition-opacity",
               line,
               "opacity-0 group-hover/item:opacity-100 focus-within:opacity-100",
-              "max-sm:opacity-60"
+              tapToShow
             )}
           >
             {!node.description && !showNote ? (
@@ -532,12 +588,14 @@ function Cheers({
   me,
   tone,
   line,
+  tapToShow,
   onCheer,
 }: {
   node: TodoNode
   me: string
   tone: string
   line: string
+  tapToShow: string
   onCheer: () => void
 }) {
   const fromThem = node.reactions.filter((r) => r.by !== me)
@@ -579,7 +637,7 @@ function Cheers({
         line,
         node.completed || mineOn
           ? "opacity-100"
-          : "opacity-0 group-hover/item:opacity-100 focus-within:opacity-100 max-sm:opacity-60"
+          : cn("opacity-0 group-hover/item:opacity-100 focus-within:opacity-100", tapToShow)
       )}
     >
       <motion.button
