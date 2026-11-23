@@ -8,9 +8,45 @@ import { LoveEffect, MayaEffect } from "@/components/handwriting"
  * "love" writes itself out, then dissolves into माया — the Nepali word for
  * the same thing. It plays once per visit rather than looping, so it stays a
  * greeting instead of becoming a distraction.
+ *
+ * That is the first visit of the day. After it, the header folds down to one
+ * row — the name and the sentence about the two of them — so on a phone the
+ * lists open above the fold. Tapping the name plays the greeting again.
  */
-export function HelloHeader({ subtitle }: { subtitle: string }) {
+export function HelloHeader({
+  subtitle,
+  compact = false,
+  onReplay,
+}: {
+  subtitle: string
+  compact?: boolean
+  onReplay?: () => void
+}) {
   const [step, setStep] = useState<0 | 1>(0)
+
+  if (compact) {
+    return (
+      <motion.header
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="relative z-10 flex min-w-0 items-baseline justify-center gap-3 pt-1 pb-1 text-center"
+      >
+        <button
+          type="button"
+          onClick={onReplay}
+          title="play the greeting again"
+          className="shrink-0 text-xl leading-none font-medium tracking-[-0.045em] text-foreground outline-none transition-opacity hover:opacity-80 focus-visible:underline"
+        >
+          our days
+        </button>
+        <span aria-hidden className="h-3 w-px shrink-0 self-center bg-white/15" />
+        <p className="font-serif min-w-0 truncate text-[1.0625rem] leading-snug text-foreground/85 sm:text-lg">
+          {subtitle}
+        </p>
+      </motion.header>
+    )
+  }
 
   return (
     <header className="relative z-10 flex flex-col items-center gap-3 pt-8 pb-2 text-center sm:pt-10">

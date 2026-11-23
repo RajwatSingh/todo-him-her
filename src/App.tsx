@@ -12,6 +12,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useOurDays } from "@/lib/store"
 import { offsetBetween, partsIn, resolveSleep } from "@/lib/time"
 import { PEOPLE } from "@/lib/types"
+import { useDailyIntro } from "@/lib/use-daily-intro"
 import { useNow } from "@/lib/use-now"
 
 const NOTES = [
@@ -69,6 +70,7 @@ export default function App() {
 function Days({ active }: { active: boolean }) {
   const [dayOffset, setDayOffset] = useState(0)
   const now = useNow()
+  const intro = useDailyIntro()
 
   const {
     profiles,
@@ -119,9 +121,13 @@ function Days({ active }: { active: boolean }) {
     <div className="relative mx-auto flex min-h-dvh w-full max-w-5xl flex-col px-4 pt-16 pb-10 sm:px-6">
       {active ? <Sky variant="day" lights={lights} /> : null}
 
-      <HelloHeader subtitle={subtitle} />
+      <HelloHeader
+        subtitle={subtitle}
+        compact={!intro.full}
+        onReplay={intro.replay}
+      />
 
-      <div className="pt-4 pb-5">
+      <div className={intro.full ? "pt-4 pb-5" : "pt-2 pb-3"}>
         {/* The reset pill hangs off the right of the switcher rather than
             sitting in the row, so the switcher stays dead centre and doesn't
             jump sideways every time you leave today or come back to it. */}
