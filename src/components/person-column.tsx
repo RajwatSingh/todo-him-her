@@ -115,13 +115,17 @@ export function PersonColumn({
       {/* who, where, and what time it is where they are                     */}
       {/* ------------------------------------------------------------------ */}
       <div className="relative z-10 px-5 pt-5">
-        {/* who, and where they are */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2">
+        {/* One grid, two rows, two columns: who / where, then the hour / the
+            day. Sharing the grid is what keeps the right-hand column flush
+            and each pair sitting on one baseline, whatever the name's length. */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-3">
+          {/* `items-baseline` with the dot pulled to centre, so the row's
+              baseline is the name's text, not the dot's bottom edge */}
+          <div className="flex min-w-0 items-baseline gap-2">
             {/* one filled, one open — the same pair as the favicon, so the two
                 of them are told apart by shape as well as by colour */}
             <span
-              className="size-2 shrink-0 rounded-full"
+              className="size-2 shrink-0 self-center rounded-full"
               aria-hidden
               style={
                 isA
@@ -137,14 +141,11 @@ export function PersonColumn({
               className="min-w-0 max-w-[8rem] bg-transparent text-lead leading-none font-medium tracking-[-0.02em] text-foreground outline-none"
             />
           </div>
-          <span className="shrink-0 text-fine text-muted-foreground">
+          <span className="justify-self-end text-right text-fine text-muted-foreground">
             {profile.location}
           </span>
-        </div>
 
-        {/* the hour where they are, and the day it belongs to */}
-        <div className="mt-3 flex items-baseline justify-between gap-3">
-          <div className="flex items-baseline gap-1.5">
+          <div className="flex min-w-0 items-baseline gap-1.5">
             <span className="font-serif font-display-xl text-hour leading-[0.9] text-foreground">
               <Figures>{clock}</Figures>
             </span>
@@ -152,7 +153,7 @@ export function PersonColumn({
               <span className="text-small text-muted-foreground">{suffix}</span>
             ) : null}
           </div>
-          <span className="shrink-0 text-fine text-muted-foreground">
+          <span className="justify-self-end text-right text-fine text-muted-foreground">
             {dateLabel}
           </span>
         </div>
