@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react"
 import { AlignLeft, ChevronDown, Plus, Trash2 } from "lucide-react"
 
 import { IconPicker } from "@/components/icon-picker"
+import { TearTicket } from "@/components/tear-check"
 import { Twemoji } from "@/components/twemoji"
 import { guessIcon } from "@/lib/icons"
 import type { Todo, TodoNode } from "@/lib/types"
@@ -22,12 +23,14 @@ export type TodoItemProps = {
 }
 
 /**
- * One task, as a pane of glass: checkbox, icon, words, in reading order.
+ * One task, as a ticket made of glass: the stub on the left is the checkbox —
+ * tap it, or drag it down and away, and it tears off along the perforation —
+ * then the icon, then the words, in reading order.
  *
- * Every leading element sits in a box exactly one line tall, so the checkbox
- * and the icon line up with the first line of the title however many lines it
- * wraps to — and they line up the same way at every depth, because a nested
- * row only steps its type down a size, never its structure.
+ * The icon sits in a box exactly one line tall, so it lines up with the
+ * first line of the title however many lines it wraps to, and the stub's
+ * ring is padded to the same line. A nested row only steps its type and its
+ * stub down a size, never its structure.
  */
 export function TodoItem({
   node,
@@ -99,164 +102,165 @@ export function TodoItem({
       transition={{ type: "spring", stiffness: 420, damping: 32 }}
       className="relative"
     >
-      <div
-        className={cn(
-          "group/item relative flex items-start gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.04] transition-colors hover:bg-white/[0.07]",
-          nested ? "py-1.5 pr-1.5 pl-2.5" : "py-2 pr-1.5 pl-3"
-        )}
+      <TearTicket
+        side="left"
+        size={nested ? "sm" : "md"}
+        tone={tone}
+        glow={glow}
+        label={node.text}
+        completed={node.completed}
+        onTear={() => onToggle(node.id)}
+        onUndo={() => onToggle(node.id)}
+        className="group/item"
       >
-        <div className={cn("flex shrink-0 items-center", line)}>
-          <Check
-            checked={node.completed}
-            label={node.text}
-            small={nested}
-            tone={tone}
-            glow={glow}
-            onChange={() => onToggle(node.id)}
-          />
-        </div>
-
-        <div className={cn("-mx-1 flex shrink-0 items-center", line)}>
-          <IconPicker
-            value={node.icon}
-            tone={tone}
-            onChange={(icon) => onPatch(node.id, { icon })}
-          />
-        </div>
-
-        <div className="min-w-0 flex-1">
-          {editingText ? (
-            <input
-              ref={textInputRef}
-              value={draftText}
-              onChange={(e) => setDraftText(e.target.value)}
-              onBlur={commitText}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") commitText()
-                if (e.key === "Escape") {
-                  setDraftText(node.text)
-                  setEditingText(false)
-                }
-              }}
-              className={cn("w-full bg-transparent outline-none", titleSize)}
-            />
-          ) : (
-            <button
-              type="button"
-              onDoubleClick={() => setEditingText(true)}
-              onClick={() => {
-                if (node.description || showNote) setShowNote((v) => !v)
-              }}
-              className={cn(
-                "block w-full text-left break-words transition-colors",
-                titleSize,
-                node.completed
-                  ? "text-white/45 line-through decoration-[1.5px]"
-                  : "text-foreground"
-              )}
-              style={
-                node.completed
-                  ? { textDecorationColor: `color-mix(in oklab, ${tone} 70%, transparent)` }
-                  : undefined
-              }
-            >
-              {node.text}
-            </button>
-          )}
-
-          {/* the note: a step down in size and weight, so it reads as an
-              aside to the task rather than a second task under it */}
-          <AnimatePresence initial={false}>
-            {showNote ? (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                className="overflow-hidden"
-              >
-                <textarea
-                  ref={noteRef}
-                  value={node.description}
-                  placeholder="a little more about this…"
-                  rows={1}
-                  onChange={(e) =>
-                    onPatch(node.id, { description: e.target.value })
-                  }
-                  onBlur={() => {
-                    if (!node.description) setShowNote(false)
-                  }}
-                  className={cn(
-                    "mt-1 -ml-1.5 block w-[calc(100%+0.375rem)] resize-none overflow-hidden rounded-md px-1.5 py-0.5",
-                    "bg-transparent text-xs leading-relaxed text-white/60",
-                    "outline-none transition-colors placeholder:text-white/35",
-                    "focus:bg-white/[0.04]"
-                  )}
-                />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
-
-        {/* row actions: hidden until the row is hovered or focused */}
         <div
           className={cn(
-            "flex shrink-0 items-center gap-0.5 transition-opacity",
-            line,
-            "opacity-0 group-hover/item:opacity-100 focus-within:opacity-100",
-            "max-sm:opacity-60"
+            "flex items-start gap-2.5",
+            nested ? "py-1.5 pr-1.5 pl-1.5" : "py-2 pr-1.5 pl-2"
           )}
         >
-          {!node.description && !showNote ? (
-            <RowAction label="add a note" onClick={() => setShowNote(true)}>
-              <AlignLeft className="size-3.5" />
-            </RowAction>
-          ) : null}
-
-          {canNest ? (
-            <RowAction
-              label="add a sub-task"
-              onClick={() => {
-                setExpanded(true)
-                setAddingChild(true)
-              }}
-            >
-              <Plus className="size-3.5" />
-            </RowAction>
-          ) : null}
-
-          <RowAction
-            label="delete"
-            destructive
-            onClick={() => onRemove(node.id)}
-          >
-            <Trash2 className="size-3.5" />
-          </RowAction>
-        </div>
-
-        {/* sub-task count, which is also the fold — always visible, since it
-            is information and not just a control */}
-        {hasChildren ? (
-          <div className={cn("flex shrink-0 items-center", line)}>
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              aria-expanded={expanded}
-              aria-label={`${expanded ? "collapse" : "expand"} sub-tasks, ${doneChildren} of ${node.children.length} done`}
-              className="inline-flex h-6 items-center gap-0.5 rounded-full px-1.5 text-fine text-white/65 tnum transition-colors outline-none hover:bg-white/[0.08] hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40"
-            >
-              {doneChildren}/{node.children.length}
-              <ChevronDown
-                className={cn(
-                  "size-3.5 transition-transform duration-200",
-                  !expanded && "-rotate-90"
-                )}
-                strokeWidth={2}
-              />
-            </button>
+          <div className={cn("-mx-1 flex shrink-0 items-center", line)}>
+            <IconPicker
+              value={node.icon}
+              tone={tone}
+              onChange={(icon) => onPatch(node.id, { icon })}
+            />
           </div>
-        ) : null}
-      </div>
+
+          <div className="min-w-0 flex-1">
+            {editingText ? (
+              <input
+                ref={textInputRef}
+                value={draftText}
+                onChange={(e) => setDraftText(e.target.value)}
+                onBlur={commitText}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commitText()
+                  if (e.key === "Escape") {
+                    setDraftText(node.text)
+                    setEditingText(false)
+                  }
+                }}
+                className={cn("w-full bg-transparent outline-none", titleSize)}
+              />
+            ) : (
+              <button
+                type="button"
+                onDoubleClick={() => setEditingText(true)}
+                onClick={() => {
+                  if (node.description || showNote) setShowNote((v) => !v)
+                }}
+                className={cn(
+                  "block w-full text-left break-words transition-colors",
+                  titleSize,
+                  node.completed
+                    ? "text-white/45 line-through decoration-[1.5px]"
+                    : "text-foreground"
+                )}
+                style={
+                  node.completed
+                    ? { textDecorationColor: `color-mix(in oklab, ${tone} 70%, transparent)` }
+                    : undefined
+                }
+              >
+                {node.text}
+              </button>
+            )}
+
+            {/* the note: a step down in size and weight, so it reads as an
+                aside to the task rather than a second task under it */}
+            <AnimatePresence initial={false}>
+              {showNote ? (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  className="overflow-hidden"
+                >
+                  <textarea
+                    ref={noteRef}
+                    value={node.description}
+                    placeholder="a little more about this…"
+                    rows={1}
+                    onChange={(e) =>
+                      onPatch(node.id, { description: e.target.value })
+                    }
+                    onBlur={() => {
+                      if (!node.description) setShowNote(false)
+                    }}
+                    className={cn(
+                      "mt-1 -ml-1.5 block w-[calc(100%+0.375rem)] resize-none overflow-hidden rounded-md px-1.5 py-0.5",
+                      "bg-transparent text-xs leading-relaxed text-white/60",
+                      "outline-none transition-colors placeholder:text-white/35",
+                      "focus:bg-white/[0.04]"
+                    )}
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+
+          {/* row actions: hidden until the row is hovered or focused */}
+          <div
+            className={cn(
+              "flex shrink-0 items-center gap-0.5 transition-opacity",
+              line,
+              "opacity-0 group-hover/item:opacity-100 focus-within:opacity-100",
+              "max-sm:opacity-60"
+            )}
+          >
+            {!node.description && !showNote ? (
+              <RowAction label="add a note" onClick={() => setShowNote(true)}>
+                <AlignLeft className="size-3.5" />
+              </RowAction>
+            ) : null}
+
+            {canNest ? (
+              <RowAction
+                label="add a sub-task"
+                onClick={() => {
+                  setExpanded(true)
+                  setAddingChild(true)
+                }}
+              >
+                <Plus className="size-3.5" />
+              </RowAction>
+            ) : null}
+
+            <RowAction
+              label="delete"
+              destructive
+              onClick={() => onRemove(node.id)}
+            >
+              <Trash2 className="size-3.5" />
+            </RowAction>
+          </div>
+
+          {/* sub-task count, which is also the fold — always visible, since it
+              is information and not just a control */}
+          {hasChildren ? (
+            <div className={cn("flex shrink-0 items-center", line)}>
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                aria-expanded={expanded}
+                aria-label={`${expanded ? "collapse" : "expand"} sub-tasks, ${doneChildren} of ${node.children.length} done`}
+                className="inline-flex h-6 items-center gap-0.5 rounded-full px-1.5 text-fine text-white/65 tnum transition-colors outline-none hover:bg-white/[0.08] hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                {doneChildren}/{node.children.length}
+                <ChevronDown
+                  className={cn(
+                    "size-3.5 transition-transform duration-200",
+                    !expanded && "-rotate-90"
+                  )}
+                  strokeWidth={2}
+                />
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </TearTicket>
 
       {/* children: stepped in, hung off a hairline that runs down from the
           parent so it's clear which row they belong to */}
@@ -330,68 +334,6 @@ export function TodoItem({
         ) : null}
       </AnimatePresence>
     </motion.li>
-  )
-}
-
-/**
- * The completion mark: a ring that fills with the person's own colour and
- * draws a tick. It is a button with the checkbox role, so keyboards and
- * screen readers treat it as one.
- */
-function Check({
-  checked,
-  label,
-  small,
-  tone,
-  glow,
-  onChange,
-}: {
-  checked: boolean
-  label: string
-  small: boolean
-  tone: string
-  glow: string
-  onChange: () => void
-}) {
-  return (
-    <motion.button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      aria-label={checked ? `mark as not done: ${label}` : `mark as done: ${label}`}
-      onClick={onChange}
-      whileTap={{ scale: 0.86 }}
-      transition={{ type: "spring", stiffness: 600, damping: 22 }}
-      className={cn(
-        "relative grid shrink-0 place-items-center rounded-full border-[1.5px] outline-none transition-[background-color,border-color,box-shadow] duration-200",
-        "focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-0",
-        small ? "size-4" : "size-[1.125rem]",
-        checked ? "" : "border-white/30 hover:border-white/55 hover:bg-white/[0.06]"
-      )}
-      style={
-        checked
-          ? { backgroundColor: tone, borderColor: tone, boxShadow: `0 0 0 3px ${glow}` }
-          : undefined
-      }
-    >
-      <svg
-        aria-hidden
-        viewBox="0 0 24 24"
-        className={small ? "size-2.5" : "size-3"}
-        fill="none"
-        stroke="var(--void)"
-        strokeWidth={3.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <motion.path
-          d="M5 12.5l4.5 4.5L19 7.5"
-          initial={false}
-          animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
-        />
-      </svg>
-    </motion.button>
   )
 }
 

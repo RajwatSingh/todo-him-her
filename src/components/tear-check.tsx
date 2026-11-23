@@ -20,7 +20,6 @@ import { Undo2 } from "lucide-react"
 import { haptic } from "@/lib/haptic"
 import { cn } from "@/lib/utils"
 
-const STUB_WIDTH = 42
 // How far (deg) the stub swings about the foot of the perforation before the
 // last fibre gives.
 const TEAR_ANGLE = 34
@@ -59,16 +58,16 @@ function stickSlip(pull: number) {
 }
 
 /**
- * One side of the tear as a clip-path: ragged from the top down to `frac`
- * (0..1 of the height), straight below. "body" is the ticket's right edge,
- * "stub" the stub's left edge.
+ * One edge of a piece as a clip-path: ragged from the top down to `frac`
+ * (0..1 of the height), straight below. `ragged` is which of the piece's
+ * own edges tore — the side that faced the perforation.
  */
-function tornEdge(frac: number, side: "body" | "stub") {
+function tornEdge(frac: number, ragged: "left" | "right") {
   const tip = frac * 100
   const edgeAt = (inset: number) =>
-    side === "body" ? `calc(100% - ${inset.toFixed(1)}px)` : `${inset.toFixed(1)}px`
-  const edge = side === "body" ? "100%" : "0%"
-  const far = side === "body" ? "0%" : "100%"
+    ragged === "right" ? `calc(100% - ${inset.toFixed(1)}px)` : `${inset.toFixed(1)}px`
+  const edge = ragged === "right" ? "100%" : "0%"
+  const far = ragged === "right" ? "0%" : "100%"
   const points = [`${far} 0%`]
   const rows = Math.ceil(frac * FIBRES.length)
   for (let k = 0; k <= rows; k++) {
@@ -79,28 +78,61 @@ function tornEdge(frac: number, side: "body" | "stub") {
   return `polygon(${points.join(",")})`
 }
 
-const BODY_TORN = tornEdge(1, "body")
-
 // Ticket notches where the perforation meets the top and bottom edges.
 const notches = (x: "0" | "100%") =>
   `radial-gradient(circle at ${x} 0, #0000 ${NOTCH}px, #000 ${NOTCH + 0.5}px) top / 100% 51% no-repeat, radial-gradient(circle at ${x} 100%, #0000 ${NOTCH}px, #000 ${NOTCH + 0.5}px) bottom / 100% 51% no-repeat`
-const bodyMask = notches("100%")
-const stubMask = notches("0")
+
+/**
+ * Everything that depends on which end of the ticket the stub is on. The
+ * physics always runs as if the stub were on the right; a stub on the left
+ * is that same tear seen in a mirror — x flipped on the way in (the pointer)
+ * and on the way out (rotation and flight).
+ */
+const SIDES = {
+  right: {
+    sign: 1,
+    bodyRagged: "right",
+    stubRagged: "left",
+    bodyMask: notches("100%"),
+    stubMask: notches("0"),
+    bodyTorn: tornEdge(1, "right"),
+    origin: "0 100%",
+  },
+  left: {
+    sign: -1,
+    bodyRagged: "left",
+    stubRagged: "right",
+    bodyMask: notches("0"),
+    stubMask: notches("100%"),
+    bodyTorn: tornEdge(1, "left"),
+    origin: "100% 100%",
+  },
+} as const
+
+const SIZES = {
+  md: { stub: 40, ring: "size-[1.125rem]", tick: "size-3", pad: "pt-2.5" },
+  sm: { stub: 34, ring: "size-4", tick: "size-2.5", pad: "pt-2" },
+} as const
 
 const mix = (tone: string, pct: number) =>
   `color-mix(in oklab, ${tone} ${pct}%, transparent)`
 
 export function TearTicket({
   tone,
+  glow,
   label,
   completed,
   onTear,
   onUndo,
   children,
   className,
+  side = "right",
+  size = "md",
 }: {
   /** Ink colour of the ticket. */
   tone: string
+  /** A soft version of `tone`, for the halo on a done task's tick. */
+  glow?: string
   /** Accessible name, e.g. the task's text. */
   label: string
   completed: boolean
@@ -111,7 +143,13 @@ export function TearTicket({
   /** The ticket's body. */
   children: ReactNode
   className?: string
+  /** Which end the stub is on. Left reads as a checkbox. */
+  side?: "left" | "right"
+  /** "sm" for nested rows. */
+  size?: "md" | "sm"
 }) {
+  const dir = SIDES[side]
+  const dims = SIZES[size]
   const [phase, setPhase] = useState<Phase>("idle")
   const [generation, setGeneration] = useState(0)
   const slotRef = useRef<HTMLDivElement>(null)
@@ -154,31 +192,32 @@ export function TearTicket({
   // The foot of the perforation, measured on the stub's slot (never rotates).
   const hinge = useCallback(() => {
     const rect = slotRef.current?.getBoundingClientRect()
-    return rect ? { x: rect.left, y: rect.bottom } : { x: 0, y: 0 }
-  }, [])
+    if (!rect) return { x: 0, y: 0 }
+    return { x: side === "left" ? rect.right : rect.left, y: rect.bottom }
+  }, [side])
 
   const drawTear = useCallback(() => {
     const s = sim.current
     const frac = clamp(s.angle / TEAR_ANGLE, 0, 1)
     const torn = frac > 0.02
     if (bodyRef.current) {
-      bodyRef.current.style.clipPath = torn ? tornEdge(frac, "body") : ""
+      bodyRef.current.style.clipPath = torn ? tornEdge(frac, dir.bodyRagged) : ""
     }
     const stub = stubRef.current
     if (stub) {
-      stub.style.clipPath = torn ? tornEdge(frac, "stub") : ""
-      stub.style.transform = `rotate(${s.angle.toFixed(2)}deg)`
+      stub.style.clipPath = torn ? tornEdge(frac, dir.stubRagged) : ""
+      stub.style.transform = `rotate(${(dir.sign * s.angle).toFixed(2)}deg)`
     }
-  }, [])
+  }, [dir])
 
   const drawFlight = useCallback(() => {
     const s = sim.current
     const stub = stubRef.current
     if (!stub) return
     const fade = clamp(1 - (s.y - FALL_DISTANCE * 0.4) / (FALL_DISTANCE * 0.6), 0, 1)
-    stub.style.transform = `translate(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px) rotate(${s.angle.toFixed(1)}deg)`
+    stub.style.transform = `translate(${(dir.sign * s.x).toFixed(1)}px, ${s.y.toFixed(1)}px) rotate(${(dir.sign * s.angle).toFixed(1)}deg)`
     stub.style.opacity = fade.toFixed(3)
-  }, [])
+  }, [dir])
 
   const detach = useCallback(() => {
     const s = sim.current
@@ -356,7 +395,9 @@ export function TearTicket({
     event.currentTarget.setPointerCapture(event.pointerId)
     const h = hinge()
     s.grabAngle =
-      (Math.atan2(event.clientY - h.y, event.clientX - h.x) * 180) / Math.PI - s.angle
+      (Math.atan2(event.clientY - h.y, dir.sign * (event.clientX - h.x)) * 180) /
+        Math.PI -
+      s.angle
     s.held = true
     s.moved = false
     s.px = s.downX = event.clientX
@@ -376,7 +417,7 @@ export function TearTicket({
     }
     const dt = event.timeStamp - s.pt
     if (dt > 0) {
-      s.pvx = s.pvx * 0.5 + ((event.clientX - s.px) / dt) * 500
+      s.pvx = s.pvx * 0.5 + ((dir.sign * (event.clientX - s.px)) / dt) * 500
       s.pvy = s.pvy * 0.5 + ((event.clientY - s.py) / dt) * 500
     }
     s.px = event.clientX
@@ -384,7 +425,8 @@ export function TearTicket({
     s.pt = event.timeStamp
     const h = hinge()
     const raw =
-      (Math.atan2(event.clientY - h.y, event.clientX - h.x) * 180) / Math.PI -
+      (Math.atan2(event.clientY - h.y, dir.sign * (event.clientX - h.x)) * 180) /
+        Math.PI -
       s.grabAngle
     // Pushing the stub back the wrong way only gives a little.
     const pull = raw < 0 ? raw * 0.15 : raw
@@ -416,88 +458,158 @@ export function TearTicket({
     autoTear()
   }
 
+  const left = side === "left"
+  const stubEdge = left ? "rounded-l-xl border-r-0" : "rounded-r-xl border-l-0"
+
+  const stubSlot = (
+    <div
+      ref={slotRef}
+      className="relative shrink-0 select-none"
+      style={{ width: dims.stub }}
+    >
+      {completed ? (
+        phase === "idle" ? (
+          // Where the stub was: the tick, in their colour, which is also the
+          // way back. Hover swaps it for an undo arrow so that's discoverable.
+          <button
+            type="button"
+            title="not done yet"
+            aria-label={`mark as not done: ${label}`}
+            onClick={onUndo}
+            className={cn(
+              "group/undo absolute inset-0 flex justify-center outline-none",
+              dims.pad,
+              left ? "rounded-l-xl" : "rounded-r-xl",
+              "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-inset"
+            )}
+          >
+            <span
+              className={cn(
+                "grid place-items-center rounded-full transition-[filter] duration-200",
+                dims.ring,
+                "group-hover/undo:brightness-110"
+              )}
+              style={{
+                backgroundColor: tone,
+                boxShadow: glow ? `0 0 0 3px ${glow}` : undefined,
+              }}
+            >
+              <svg
+                aria-hidden="true"
+                className={cn(dims.tick, "group-hover/undo:hidden group-focus-visible/undo:hidden")}
+                fill="none"
+                stroke="var(--void)"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3.5}
+                viewBox="0 0 24 24"
+              >
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+              <Undo2
+                className={cn(
+                  dims.tick,
+                  "hidden text-[var(--void)] group-hover/undo:block group-focus-visible/undo:block"
+                )}
+                strokeWidth={2.4}
+              />
+            </span>
+          </button>
+        ) : null
+      ) : phase === "torn" ? null : (
+        <button
+          key={generation}
+          ref={stubRef}
+          type="button"
+          role="checkbox"
+          aria-checked={false}
+          title="tear to tick off"
+          aria-label={`tick off: ${label}`}
+          onKeyDown={handleKeyDown}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onLostPointerCapture={handlePointerUp}
+          className={cn(
+            "group/stub absolute inset-0 flex touch-none justify-center border border-white/[0.08] outline-none",
+            stubEdge,
+            dims.pad,
+            "focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-inset",
+            "transition-[opacity,translate,background-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:opacity-0",
+            left ? "starting:translate-x-2" : "starting:-translate-x-2",
+            phase === "tearing" ? "cursor-grabbing" : "cursor-grab"
+          )}
+          style={{
+            // glass first, their colour only as a tint on it — a solid
+            // wash of the accent read as brown card stock on the night
+            background: `linear-gradient(${mix(tone, 9)}, ${mix(tone, 9)}), rgb(255 255 255 / 0.05)`,
+            color: tone,
+            mask: dir.stubMask,
+            WebkitMask: dir.stubMask,
+            transformOrigin: dir.origin,
+          }}
+        >
+          {/* the perforation */}
+          <span
+            aria-hidden="true"
+            className={cn(
+              "absolute inset-y-1.5 border-dotted",
+              left ? "right-0 border-r-2" : "left-0 border-l-2"
+            )}
+            style={{ borderColor: mix(tone, 45) }}
+          />
+          {/* the box to tick — a ring, with the tick it'll become showing
+              faintly on hover */}
+          <span
+            aria-hidden="true"
+            className={cn(
+              "grid place-items-center rounded-full border-[1.5px] transition-colors",
+              dims.ring
+            )}
+            style={{ borderColor: mix(tone, 70) }}
+          >
+            <svg
+              className={cn(dims.tick, "opacity-0 transition-opacity group-hover/stub:opacity-60")}
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={3}
+              viewBox="0 0 24 24"
+            >
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          </span>
+        </button>
+      )}
+    </div>
+  )
+
   return (
     <div className={cn("relative flex items-stretch", className)}>
-      {/* the ticket */}
+      {left ? stubSlot : null}
+
+      {/* the ticket: a pane of glass, open on the perforated side */}
       <div
         ref={bodyRef}
-        className="relative min-w-0 flex-1 rounded-l-xl transition-[background-color] duration-200"
+        className={cn(
+          "relative min-w-0 flex-1 border border-white/[0.08] transition-[background-color] duration-200",
+          left ? "rounded-r-xl border-l-0" : "rounded-l-xl border-r-0",
+          completed
+            ? "bg-white/[0.025]"
+            : "bg-white/[0.04] hover:bg-white/[0.07]"
+        )}
         style={{
-          backgroundColor: mix(tone, completed ? 6 : 13),
-          mask: bodyMask,
-          WebkitMask: bodyMask,
-          clipPath: completed ? BODY_TORN : undefined,
+          mask: dir.bodyMask,
+          WebkitMask: dir.bodyMask,
+          clipPath: completed ? dir.bodyTorn : undefined,
         }}
       >
         {children}
       </div>
 
-      {/* the stub, or where it used to be */}
-      <div ref={slotRef} className="relative shrink-0 select-none" style={{ width: STUB_WIDTH }}>
-        {completed ? (
-          phase === "idle" ? (
-            <button
-              type="button"
-              title="not done yet"
-              aria-label={`mark as not done: ${label}`}
-              onClick={onUndo}
-              className={cn(
-                "absolute inset-0 grid place-items-center rounded-r-xl text-muted-foreground/50 outline-none transition-colors",
-                "opacity-0 group-hover/item:opacity-100 focus-visible:opacity-100 max-sm:opacity-70",
-                "hover:text-foreground focus-visible:text-foreground"
-              )}
-            >
-              <Undo2 className="size-3.5" />
-            </button>
-          ) : null
-        ) : phase === "torn" ? null : (
-          <button
-            key={generation}
-            ref={stubRef}
-            type="button"
-            title="tear to tick off"
-            aria-label={`tick off: ${label}`}
-            onKeyDown={handleKeyDown}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onLostPointerCapture={handlePointerUp}
-            className={cn(
-              "absolute inset-0 grid touch-none place-items-center rounded-r-xl outline-none",
-              "focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-inset",
-              "transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:-translate-x-2 starting:opacity-0",
-              phase === "tearing" ? "cursor-grabbing" : "cursor-grab"
-            )}
-            style={{
-              backgroundColor: mix(tone, 26),
-              color: tone,
-              mask: stubMask,
-              WebkitMask: stubMask,
-              transformOrigin: "0 100%",
-            }}
-          >
-            {/* the perforation */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-y-1.5 left-0 border-l-2 border-dotted"
-              style={{ borderColor: mix(tone, 55) }}
-            />
-            <svg
-              aria-hidden="true"
-              className="ml-0.5 size-3.5"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-              viewBox="0 0 24 24"
-            >
-              <path d="M5 12.5l4.5 4.5L19 7.5" />
-            </svg>
-          </button>
-        )}
-      </div>
+      {left ? null : stubSlot}
     </div>
   )
 }
